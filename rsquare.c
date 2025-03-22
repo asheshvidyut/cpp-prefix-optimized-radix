@@ -10,169 +10,104 @@
 #include "radix/node.cpp"
 #include "radix/rev_iterator.cpp"
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static Tree *tree = NULL;
 
 static RedisModuleCtx *globalCtx = NULL;
 
-void initRadixTree() {
+static void initRadixTree() {
     tree = Tree_New();
 }
 
 // Placeholder: update your radix tree with the given key.
-void insertInRadixTree(const char *key) {
+void insertInRadixTree(unsigned char *key, int len) {
     // Insert or update the key in your radix tree.
     // For example: radix_tree_insert(myRadixTree, key);
     void * oldVal;
     int * didUpdate;
-    tree = Tree_Insert(tree, key, strlen(key), NULL, &oldVal, &didUpdate);
+    tree = Tree_Insert(tree, key, len, NULL, &oldVal, &didUpdate);
 }
 
-void deleteInRadixTree(const char *key) {
+void deleteInRadixTree(unsigned char *key, int len) {
     // Insert or update the key in your radix tree.
     // For example: radix_tree_insert(myRadixTree, key);
     int found;
-    tree = Tree_Delete(tree, key, strlen(key), NULL, &found);
-}
-
-// This function scans the entire keyspace and updates the radix tree.
-int updateRadixTreeForAllKeys(RedisModuleCtx *ctx) {
-    // Start with cursor "0".
-    char *cursor = strdup("0");
-    if (cursor == NULL) return REDISMODULE_ERR;
-
-    do {
-        // Execute the SCAN command with a COUNT of 100 (adjust as needed).
-        RedisModuleCallReply *reply = RedisModule_Call(ctx, "SCAN", "sc", cursor, "COUNT", "100");
-        if (!reply) {
-            free(cursor);
-            return REDISMODULE_ERR;
-        }
-
-        // The reply is an array: [cursor, [keys]]
-        RedisModuleCallReply *cursorReply = RedisModule_CallReplyArrayElement(reply, 0);
-        size_t cursorLen;
-        const char *newCursor = RedisModule_CallReplyStringPtr(cursorReply, &cursorLen);
-
-        // Update the cursor by freeing the old copy and duplicating the new one.
-        free(cursor);
-        cursor = strdup(newCursor);
-        if (cursor == NULL) {
-            RedisModule_FreeCallReply(reply);
-            return REDISMODULE_ERR;
-        }
-
-        // Retrieve the array of keys.
-        RedisModuleCallReply *keysArray = RedisModule_CallReplyArrayElement(reply, 1);
-        size_t keysCount = RedisModule_CallReplyLength(keysArray);
-        for (size_t i = 0; i < keysCount; i++) {
-            RedisModuleCallReply *keyReply = RedisModule_CallReplyArrayElement(keysArray, i);
-            size_t keyLen;
-            const char *keyStr = RedisModule_CallReplyStringPtr(keyReply, &keyLen);
-            insertInRadixTree(keyStr);
-        }
-        RedisModule_FreeCallReply(reply);
-
-    } while (strcmp(cursor, "0") != 0);
-
-    free(cursor);
-    return REDISMODULE_OK;
+    tree = Tree_Delete(tree, key, len, NULL, &found);
 }
 
 int RSquareSearchCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
-    // Your logic to search the radix tree.
+    // Check for the correct number of arguments.
     if (argc != 2) {
         return RedisModule_WrongArity(ctx);
     }
 
+    // Retrieve the prefix and its length.
     size_t prefixLen;
     const char *prefix = RedisModule_StringPtrLen(argv[1], &prefixLen);
 
-    char **matches = NULL;  // array of matching strings
-    size_t count = 0;       // number of matches stored so far
-    size_t capacity = 0;    // current allocated capacity for matches array
+    // Ensure the radix tree is initialized.
+    if (tree == NULL) {
+        return RedisModule_ReplyWithError(ctx, "ERR radix tree not initialized");
+    }
 
-    // Assume Tree_SearchPrefix returns a dynamically allocated array of matching keys
-    // and sets the count of matches.
-    // Get an iterator from the tree's root.
-    // Assume Root() returns a pointer to a Node, and that Node has a method Iterator().
-    Iterator* iter = Node_Iterator(Tree_Root(tree));
-    Iterator_SeekPrefix(iter, prefix, prefixLen);
+    // Create an iterator from the tree's root.
+    Iterator *iter = Node_Iterator(Tree_Root(tree));
+    if (iter == NULL) {
+        return RedisModule_ReplyWithError(ctx, "ERR failed to create iterator");
+    }
 
-    // Iterate over the tree, collecting keys into the result vector.
+    // Seek to the first key that matches the given prefix.
+    Iterator_SeekPrefix(iter, (const unsigned char *) prefix, (int) prefixLen);
+
+    // Begin an array reply with a postponed length.
+    RedisModule_ReplyWithArray(ctx, REDISMODULE_POSTPONED_LEN);
+    size_t count = 0;
+
+    // Iterate over the tree, adding each matching key to the reply.
     while (true) {
         IteratorResult result = Iterator_Next(iter);
         if (!result.found) {
             break;
         }
-        // Assume Iterator::Next() returns a tuple: (std::string key, void* value, bool found)
-        if (count == capacity) {
-            capacity = (capacity == 0) ? 16 : capacity * 2;
-            char **newMatches = realloc(matches, capacity * sizeof(char *));
-            if (newMatches == NULL) {
-                // Clean up previously allocated matches if realloc fails.
-                for (size_t i = 0; i < count; i++) {
-                    free(matches[i]);
-                }
-                free(matches);
-                return RedisModule_ReplyWithError(ctx, "ERR realloc failed");
-            }
-            matches = newMatches;
-        }
-        // Duplicate the key string so we can store it.
-        // (Assuming result.key is a null-terminated C-string)
-        matches[count] = strdup(result.key);
-        if (matches[count] == NULL) {
-            // Clean up on allocation failure.
-            for (size_t i = 0; i < count; i++) {
-                free(matches[i]);
-            }
-            free(matches);
-            return RedisModule_ReplyWithError(ctx, "ERR strdup failed");
-        }
+        RedisModule_ReplyWithStringBuffer(ctx, result.key, result.key_len);
         count++;
     }
 
-    if (matches == NULL || count == 0) {
-        return RedisModule_ReplyWithArray(ctx, 0);
-    }
-
-    // Reply with the array of matches.
-    RedisModule_ReplyWithArray(ctx, count);
-    for (size_t i = 0; i < count; i++) {
-        RedisModule_ReplyWithStringBuffer(ctx, matches[i], strlen(matches[i]));
-        free(matches[i]);  // Free each match string.
-    }
-    free(matches); // Free the array pointer.
+    // Set the correct array length in the reply.
+    RedisModule_ReplySetArrayLength(ctx, count);
 
     return REDISMODULE_OK;
 }
 
-// Example command filter function that updates the radix tree when key-creating commands are executed.
-static int RSquareFilter(RedisModuleCommandFilterCtx *filter) {
-    RedisModule_Log(globalCtx, "debug", "RSquareFilter invoked. Args count: %d", RedisModule_CommandFilterArgsCount(filter));
-    int argc = RedisModule_CommandFilterArgsCount(filter);
-    if (argc < 2) return REDISMODULE_OK;
-
-    const char *cmd = RedisModule_CommandFilterArgGet(filter, 0);
-    // Check for key-creating commands.
-    if (strcasecmp(cmd, "SET") == 0) {
-        const char *key = RedisModule_CommandFilterArgGet(filter, 1);
-        RedisModule_Log(globalCtx, "notice", "Processing SET for key: %s", key);
-        insertInRadixTree(key);
-    } else if (strcasecmp(cmd, "DEL") == 0) {
-        for (int i = 1; i < argc; i++) {
-            const char *key = RedisModule_CommandFilterArgGet(filter, i);
-            deleteInRadixTree(key);
-        }
-    } else {
-
+int RSquareInsertCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
+    // Your logic to search the radix tree.
+    if (argc != 2) {
+        return RedisModule_WrongArity(ctx);
     }
-    return REDISMODULE_OK;
+
+    size_t keyLen;
+    const char *key = RedisModule_StringPtrLen(argv[1], &keyLen);
+
+    insertInRadixTree((unsigned char *) key, (int) keyLen);
+    return RedisModule_ReplyWithSimpleString(ctx, "OK");
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int RSquareDeleteCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
+    // Your logic to search the radix tree.
+    if (argc != 2) {
+        return RedisModule_WrongArity(ctx);
+    }
+
+    size_t keyLen;
+    const char *key = RedisModule_StringPtrLen(argv[1], &keyLen);
+
+    deleteInRadixTree((unsigned char *) key, (int) keyLen);
+    return RedisModule_ReplyWithSimpleString(ctx, "OK");
+}
 
 // Module initialization function.
 int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
@@ -184,13 +119,18 @@ int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) 
         return REDISMODULE_ERR;
     }
 
-    // Register the command filter to update the radix tree for new key creations.
-    if (RedisModule_RegisterCommandFilter(ctx, (RedisModuleCommandFilterFunc) RSquareFilter, 0) == REDISMODULE_ERR) {
+    // Register a custom command to query your radix tree.
+    if (RedisModule_CreateCommand(ctx, "rsquare.search", RSquareSearchCommand,"readonly", 1, 1, 0) == REDISMODULE_ERR) {
         return REDISMODULE_ERR;
     }
 
-    // Register a custom command to query your radix tree.
-    if (RedisModule_CreateCommand(ctx, "rsquare.search", RSquareSearchCommand,"readonly", 0, 0, 0) == REDISMODULE_ERR) {
+    // Register a custom command to insert your radix tree.
+    if (RedisModule_CreateCommand(ctx, "rsquare.insert", RSquareInsertCommand,"write", 1, 1, 1) == REDISMODULE_ERR) {
+        return REDISMODULE_ERR;
+    }
+
+    // Register a custom command to delete your radix tree.
+    if (RedisModule_CreateCommand(ctx, "rsquare.delete", RSquareDeleteCommand,"write", 1, 1, 1) == REDISMODULE_ERR) {
         return REDISMODULE_ERR;
     }
 
