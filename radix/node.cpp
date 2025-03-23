@@ -353,7 +353,7 @@ LongestPrefixResult Node_LongestPrefix(Node *n, unsigned char *k, size_t k_len) 
 
 // Returns a new iterator starting at node n.
 Iterator *Node_Iterator(Node *n) {
-    Iterator *it = (Iterator *)malloc(sizeof(Iterator));
+    Iterator *it = (Iterator *)RedisModule_Alloc(sizeof(Iterator));
     if (!it) {
         perror("malloc failed");
         exit(EXIT_FAILURE);

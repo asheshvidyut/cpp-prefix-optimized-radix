@@ -6,18 +6,19 @@
 #include "node.hpp"
 #include "radix.hpp"
 #include "string.h"
+#include "redismodule.h"
 
 // Forward declaration of Node; its definition should be provided elsewhere.
 typedef struct Node Node;
 
 // New returns an empty Tree.
 Tree *Tree_New(void) {
-    Tree *t = (Tree *)malloc(sizeof(Tree));
+    Tree *t = (Tree *)RedisModule_Alloc(sizeof(Tree));
     if (!t) {
         perror("malloc failed for Tree");
         return NULL;
     }
-    t->root = (Node *)malloc(sizeof(Node));
+    t->root = (Node *)RedisModule_Alloc(sizeof(Node));
     if (!t->root) {
         perror("malloc failed for Node");
         free(t);
@@ -33,7 +34,7 @@ int Tree_Len(Tree *t) {
 }
 
 Txn *Tree_Txn(Tree *t) {
-    Txn *txn = (Txn *)malloc(sizeof(Txn));
+    Txn *txn = (Txn *)RedisModule_Alloc(sizeof(Txn));
     if (!txn) {
         perror("malloc failed for Txn");
         return NULL;
@@ -46,7 +47,7 @@ Txn *Tree_Txn(Tree *t) {
 // The new transaction contains the current state of the original,
 // and further mutations on either transaction will be independent.
 Txn *Txn_Clone(Txn *t) {
-    Txn *txn = (Txn *)malloc(sizeof(Txn));
+    Txn *txn = (Txn *)RedisModule_Alloc(sizeof(Txn));
     if (!txn) {
         perror("malloc failed for Txn clone");
         return NULL;
@@ -76,7 +77,7 @@ unsigned char *concat(const unsigned char *a, size_t a_len,
                       const unsigned char *b, size_t b_len,
                       size_t *out_len) {
     *out_len = a_len + b_len;
-    unsigned char *c = (unsigned char *)malloc(*out_len);
+    unsigned char *c = (unsigned char *)RedisModule_Alloc(*out_len);
     if (c == NULL) {
         perror("malloc failed in concat");
         exit(EXIT_FAILURE);
@@ -114,7 +115,7 @@ void Txn_mergeChild(Txn *t, Node *n) {
     // Merge the edges.
     if (child->edges.len != 0) {
         // Allocate new memory for n->edges.data with the size of child->edges.
-        edge *new_edges = (edge *)malloc(child->edges.len * sizeof(edge));
+        edge *new_edges = (edge *)RedisModule_Alloc(child->edges.len * sizeof(edge));
         if (new_edges == NULL) {
             perror("malloc failed in mergeChild for edges");
             exit(EXIT_FAILURE);
@@ -156,7 +157,7 @@ Node *Txn_insert(Txn *t, Node *n,
             *didUpdate = 1;
         }
         // Create a new leaf.
-        LeafNode *newLeaf = (LeafNode *)malloc(sizeof(LeafNode));
+        LeafNode *newLeaf = (LeafNode *)RedisModule_Alloc(sizeof(LeafNode));
         if (!newLeaf) { perror("malloc failed"); exit(EXIT_FAILURE); }
         newLeaf->key = k;
         newLeaf->key_len = k_len;
@@ -175,7 +176,7 @@ Node *Txn_insert(Txn *t, Node *n,
     // No edge found; create one.
     if (child == NULL) {
         // Create a new leaf node.
-        LeafNode *leaf = (LeafNode *)malloc(sizeof(LeafNode));
+        LeafNode *leaf = (LeafNode *)RedisModule_Alloc(sizeof(LeafNode));
         if (!leaf) { perror("malloc failed"); exit(EXIT_FAILURE); }
         leaf->key = k;
         leaf->key_len = k_len;
@@ -184,7 +185,7 @@ Node *Txn_insert(Txn *t, Node *n,
         leaf->prevLeaf = NULL;
 
         // Create a new Node to hold the leaf.
-        Node *newNode = (Node *)malloc(sizeof(Node));
+        Node *newNode = (Node *)RedisModule_Alloc(sizeof(Node));
         if (!newNode) { perror("malloc failed"); exit(EXIT_FAILURE); }
         newNode->leaf = leaf;
         newNode->minLeaf = leaf;
@@ -225,9 +226,9 @@ Node *Txn_insert(Txn *t, Node *n,
 
     // Split the node.
     // Create a new split node whose prefix is search[0:commonPrefix].
-    Node *splitNode = (Node *)malloc(sizeof(Node));
+    Node *splitNode = (Node *)RedisModule_Alloc(sizeof(Node));
     if (!splitNode) { perror("malloc failed"); exit(EXIT_FAILURE); }
-    splitNode->prefix = (unsigned char *)malloc(commonPrefix);
+    splitNode->prefix = (unsigned char *)RedisModule_Alloc(commonPrefix);
     if (!splitNode->prefix) { perror("malloc failed"); exit(EXIT_FAILURE); }
     memcpy(splitNode->prefix, search, commonPrefix);
     splitNode->prefix_len = commonPrefix;
@@ -257,7 +258,7 @@ Node *Txn_insert(Txn *t, Node *n,
     // Adjust the child's prefix: remove the common prefix.
     {
         size_t newChildPrefixLen = child->prefix_len - commonPrefix;
-        unsigned char *newChildPrefix = (unsigned char *)malloc(newChildPrefixLen);
+        unsigned char *newChildPrefix = (unsigned char *)RedisModule_Alloc(newChildPrefixLen);
         if (!newChildPrefix) { perror("malloc failed"); exit(EXIT_FAILURE); }
         memcpy(newChildPrefix, child->prefix + commonPrefix, newChildPrefixLen);
         child->prefix = newChildPrefix;
@@ -265,7 +266,7 @@ Node *Txn_insert(Txn *t, Node *n,
     }
 
     // Create a new leaf node.
-    LeafNode *leaf = (LeafNode *)malloc(sizeof(LeafNode));
+    LeafNode *leaf = (LeafNode *)RedisModule_Alloc(sizeof(LeafNode));
     if (!leaf) { perror("malloc failed"); exit(EXIT_FAILURE); }
     leaf->key = k;
     leaf->key_len = k_len;
@@ -288,7 +289,7 @@ Node *Txn_insert(Txn *t, Node *n,
     }
 
     // Create a new node to hold the new leaf.
-    Node *newLeafNode = (Node *)malloc(sizeof(Node));
+    Node *newLeafNode = (Node *)RedisModule_Alloc(sizeof(Node));
     if (!newLeafNode) { perror("malloc failed"); exit(EXIT_FAILURE); }
     newLeafNode->leaf = leaf;
     newLeafNode->minLeaf = leaf;
@@ -482,7 +483,7 @@ DeleteReturn Txn_Delete(Txn *t, unsigned char *k, size_t k_len) {
     t->root = dr.node;
     // If the tree becomes empty, allocate a new empty node.
     if (t->root == NULL) {
-        t->root = (Node *)malloc(sizeof(Node));
+        t->root = (Node *)RedisModule_Alloc(sizeof(Node));
         if (!t->root) {
             perror("malloc failed for new Node");
             exit(EXIT_FAILURE);
@@ -519,7 +520,7 @@ DeletePrefixReturn Txn_DeletePrefix(Txn *t, unsigned char *prefix, size_t prefix
     t->size -= dpr.numDeletions;
     if (t->root == NULL) {
         // Allocate a new empty node.
-        t->root = (Node *)malloc(sizeof(Node));
+        t->root = (Node *)RedisModule_Alloc(sizeof(Node));
         if (!t->root) {
             perror("malloc failed for new Node");
             exit(EXIT_FAILURE);
@@ -554,7 +555,7 @@ Tree *Txn_Commit(Txn *t) {
 
 
 Tree *Txn_CommitOnly(Txn *t) {
-    Tree *nt = (Tree *)malloc(sizeof(Tree));
+    Tree *nt = (Tree *)RedisModule_Alloc(sizeof(Tree));
     if (!nt) {
         perror("malloc failed");
         exit(EXIT_FAILURE);
