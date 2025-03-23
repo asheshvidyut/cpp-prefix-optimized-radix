@@ -11,7 +11,7 @@
 
 // NewReverseIterator returns a new ReverseIterator at a node.
 ReverseIterator *ReverseIterator_New(Node *n) {
-    ReverseIterator *ri = (ReverseIterator *)RedisModule_Alloc(sizeof(ReverseIterator));
+    ReverseIterator *ri = (ReverseIterator *)malloc(sizeof(ReverseIterator));
     if (!ri) {
         fprintf(stderr, "malloc failed");
         exit(EXIT_FAILURE);
