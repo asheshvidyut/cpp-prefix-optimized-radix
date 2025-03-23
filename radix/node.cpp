@@ -174,12 +174,27 @@ void Node_replaceEdge(Node *n, edge e) {
 }
 
 Node* Node_getEdge(Node *n, unsigned char label, int *out_index) {
+    // Check that the node is not NULL.
+    if (n == NULL) {
+        if (out_index)
+            *out_index = -1;
+        return NULL;
+    }
+
+    // Check that the edges array is valid if there are any edges.
+    if (n->edges.len > 0 && n->edges.data == NULL) {
+        if (out_index)
+            *out_index = -1;
+        return NULL;
+    }
+
     size_t num = n->edges.len;
     size_t low = 0, high = num;
 
-    // Binary search for the edge.
+    // Perform binary search for the edge with the specified label.
     while (low < high) {
         size_t mid = (low + high) >> 1;
+        // Adjust search bounds based on the mid label comparison.
         if (n->edges.data[mid].label >= label)
             high = mid;
         else
@@ -187,6 +202,7 @@ Node* Node_getEdge(Node *n, unsigned char label, int *out_index) {
     }
     size_t idx = low;
 
+    // Check if the found index corresponds to an edge with the desired label.
     if (idx < num && n->edges.data[idx].label == label) {
         if (out_index)
             *out_index = (int)idx;

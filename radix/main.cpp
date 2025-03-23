@@ -75,7 +75,7 @@ int main() {
 
     // Test seekPrefix
     iter = Node_Iterator(Tree_Root(r));
-    unsigned char * pfx = (unsigned char *)"b";
+    auto * pfx = (unsigned char *)"b";
     Iterator_SeekPrefix(iter, pfx, 1);
 
 
@@ -87,6 +87,25 @@ int main() {
         printf("%s\n", std::string(reinterpret_cast<char*>(iteratorResult.key), iteratorResult.key_len).c_str());
     }
 
+    r = Tree_New();
+    char * s = "a";
+    int oldVal;
+    int didUpdate;
+    r = Tree_Insert(r, (unsigned char*)s, 1, NULL, reinterpret_cast<void **>(&oldVal), &didUpdate);
+    s = "ab";
+    r = Tree_Insert(r, (unsigned char*)s, 2, NULL, reinterpret_cast<void **>(&oldVal), &didUpdate);
+    s = "abc";
+    r = Tree_Insert(r, (unsigned char*)s, 3, NULL, reinterpret_cast<void **>(&oldVal), &didUpdate);
+    iter = Node_Iterator(Tree_Root(r));
+    iter->key_len = 0;
+    iter->key = (unsigned char *)"";
+    while (true) {
+        // Assume Iterator::Next() returns a tuple: (std::string key, void* value, bool found)
+        auto iteratorResult = Iterator_Next(iter);
+        if (!iteratorResult.found)
+            break;
+        printf("%s\n", std::string(reinterpret_cast<char*>(iteratorResult.key), iteratorResult.key_len).c_str());
+    }
 
     return 0;
 }
