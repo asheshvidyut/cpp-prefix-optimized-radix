@@ -2,7 +2,7 @@
 // Created by Ashesh Vidyut on 22/03/25.
 //
 
-#include "radix.hpp"
+#include "iradix/radix.hpp"
 #include <iostream>
 #include <string>
 #include <vector>

@@ -153,30 +153,6 @@ iradix/iterator.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/iterator.cpp.s
 .PHONY : iradix/iterator.cpp.s
 
-iradix/main.o: iradix/main.cpp.o
-.PHONY : iradix/main.o
-
-# target to build an object file
-iradix/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/main.cpp.o
-.PHONY : iradix/main.cpp.o
-
-iradix/main.i: iradix/main.cpp.i
-.PHONY : iradix/main.i
-
-# target to preprocess a source file
-iradix/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/main.cpp.i
-.PHONY : iradix/main.cpp.i
-
-iradix/main.s: iradix/main.cpp.s
-.PHONY : iradix/main.s
-
-# target to generate assembly for a file
-iradix/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/main.cpp.s
-.PHONY : iradix/main.cpp.s
-
 iradix/node.o: iradix/node.cpp.o
 .PHONY : iradix/node.o
 
@@ -225,6 +201,30 @@ iradix/radix.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/radix.cpp.s
 .PHONY : iradix/radix.cpp.s
 
+main.o: main.cpp.o
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/main.cpp.s
+.PHONY : main.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -237,15 +237,15 @@ help:
 	@echo "... iradix/iterator.o"
 	@echo "... iradix/iterator.i"
 	@echo "... iradix/iterator.s"
-	@echo "... iradix/main.o"
-	@echo "... iradix/main.i"
-	@echo "... iradix/main.s"
 	@echo "... iradix/node.o"
 	@echo "... iradix/node.i"
 	@echo "... iradix/node.s"
 	@echo "... iradix/radix.o"
 	@echo "... iradix/radix.i"
 	@echo "... iradix/radix.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 

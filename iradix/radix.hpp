@@ -28,22 +28,12 @@ private:
     std::shared_ptr<Node<K, T>> root;
     int size;
 
-    friend class Transaction;  // Add friend declaration
+    friend class Transaction;
 
 public:
-    RadixTree() : root(std::make_shared<Node<K, T>>()), size(0) {
-        root->mutateCh = std::make_shared<std::condition_variable>();
-    }
-
-    // Returns the root node
-    std::shared_ptr<Node<K, T>> getRoot() const {
-        return root;
-    }
-
-    // Returns the number of elements in the tree
-    int len() const {
-        return size;
-    }
+    RadixTree();
+    std::shared_ptr<Node<K, T>> getRoot() const;
+    int len() const;
 
     // Transaction class for atomic operations
     class Transaction {
@@ -52,377 +42,51 @@ public:
         int size;
         RadixTree<K, T>& tree;
 
-        friend class RadixTree;  // Add RadixTree as friend
+        friend class RadixTree;
 
     public:
-        Transaction(RadixTree<K, T>& t) : root(t.root), size(t.size), tree(t) {}
+        Transaction(RadixTree<K, T>& t);
 
-        // Inserts a key/value pair into the transaction
         std::tuple<std::shared_ptr<Node<K, T>>, std::optional<T>, bool> insert(
             std::shared_ptr<Node<K, T>> n,
             const K& k,
             const K& search,
-            const T& v) {
-            
-            std::optional<T> oldVal;
-            bool didUpdate = false;
+            const T& v);
 
-            // Handle key exhaustion
-            if (search.empty()) {
-                if (n->leaf) {
-                    // Update existing leaf
-                    oldVal = n->leaf->val;
-                    didUpdate = true;
-                }
-
-                // Create a new leaf
-                n->leaf = std::make_shared<LeafNode<K, T>>(k, v);
-                if (!didUpdate) {
-                    size++;
-                }
-                return {n, oldVal, didUpdate};
-            }
-
-            // Look for an edge
-            int idx;
-            auto child = n->getEdge(search[0], &idx);
-
-            // No edge, create one
-            if (!child) {
-                auto newNode = std::make_shared<Node<K, T>>();
-                newNode->mutateCh = std::make_shared<std::condition_variable>();
-                newNode->leaf = std::make_shared<LeafNode<K, T>>(k, v);
-                newNode->prefix = search;
-
-                Edge<K, T> e;
-                e.label = search[0];
-                e.node = newNode;
-                n->addEdge(e);
-
-                size++;
-                return {n, std::nullopt, false};
-            }
-
-            // Determine longest prefix of the search key on match
-            int commonPrefix = longestPrefix(search, child->prefix);
-            if (commonPrefix == child->prefix.size()) {
-                // Consume the search prefix
-                K newSearch(search.begin() + commonPrefix, search.end());
-                auto [newChild, oldVal, didUpdate] = insert(child, k, newSearch, v);
-                if (newChild != child) {
-                    Edge<K, T> e = n->edges[idx];
-                    e.node = newChild;
-                    n->replaceEdge(e);
-                }
-                return {n, oldVal, didUpdate};
-            }
-
-            // Split the node
-            auto splitNode = std::make_shared<Node<K, T>>();
-            splitNode->mutateCh = std::make_shared<std::condition_variable>();
-            splitNode->prefix = K(search.begin(), search.begin() + commonPrefix);
-
-            // Restore the existing child node
-            auto modChild = child;
-            modChild->prefix = K(child->prefix.begin() + commonPrefix, child->prefix.end());
-            Edge<K, T> e1;
-            e1.label = modChild->prefix[0];
-            e1.node = modChild;
-            splitNode->addEdge(e1);
-
-            // Create a new leaf node
-            auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
-
-            // If the new key is a subset, add to this node
-            K remainingSearch(search.begin() + commonPrefix, search.end());
-            if (remainingSearch.empty()) {
-                splitNode->leaf = leaf;
-            } else {
-                // Create a new edge for the node
-                auto newNode = std::make_shared<Node<K, T>>();
-                newNode->mutateCh = std::make_shared<std::condition_variable>();
-                newNode->leaf = leaf;
-                newNode->prefix = remainingSearch;
-
-                Edge<K, T> e2;
-                e2.label = remainingSearch[0];
-                e2.node = newNode;
-                splitNode->addEdge(e2);
-            }
-
-            // Replace the original edge
-            Edge<K, T> e;
-            e.label = search[0];
-            e.node = splitNode;
-            n->replaceEdge(e);
-
-            size++;
-            return {n, std::nullopt, false};
-        }
-
-        // Deletes a key from the tree recursively
         struct DeleteResult {
             std::shared_ptr<Node<K, T>> node;
             std::shared_ptr<LeafNode<K, T>> leaf;
         };
 
-        DeleteResult del(std::shared_ptr<Node<K, T>> parent, std::shared_ptr<Node<K, T>> n, const K& search) {
-            DeleteResult result;
-            result.node = nullptr;
-            result.leaf = nullptr;
+        DeleteResult del(std::shared_ptr<Node<K, T>> parent, std::shared_ptr<Node<K, T>> n, const K& search);
 
-            // If we're at the end of the search, we're deleting
-            if (search.empty()) {
-                if (n->leaf) {
-                    // Delete the leaf
-                    result.leaf = n->leaf;
-                    n->leaf = nullptr;
-                    n->minLeaf = nullptr;
-                    n->maxLeaf = nullptr;
-                    size--;
-
-                    // If the node has no edges, it can be removed
-                    if (n->edges.empty()) {
-                        return result;
-                    }
-
-                    // If the node has only one edge, merge with the child
-                    if (n->edges.size() == 1) {
-                        auto child = n->edges[0].node;
-                        child->prefix = concat(n->prefix, child->prefix);
-                        result.node = child;
-                        return result;
-                    }
-
-                    // Otherwise, just update the node
-                    n->updateMinMaxLeaves();
-                    result.node = n;
-                    return result;
-                }
-                return result;
-            }
-
-            // Look for an edge
-            if (search.empty()) {
-                result.node = n;
-                return result;
-            }
-            int idx;
-            auto child = n->getEdge(search[0], &idx);
-            if (child) {
-                // Consume the search prefix
-                K newSearch = search;
-                if (!child->prefix.empty() && !newSearch.empty()) {
-                    newSearch.erase(newSearch.begin(), newSearch.begin() + std::min(child->prefix.size(), newSearch.size()));
-                }
-
-                // Recurse
-                auto childResult = del(n, child, newSearch);
-                
-                if (childResult.node != child) {
-                    // Child was modified, update the edge
-                    if (childResult.node) {
-                        Edge<K, T> e = n->edges[idx];
-                        e.node = childResult.node;
-                        n->replaceEdge(e);
-                    } else {
-                        n->delEdge(search[0]);
-                    }
-                }
-
-                // If the node has no edges and no leaf, it can be removed
-                if (n->edges.empty() && !n->leaf) {
-                    result.node = nullptr;
-                } else {
-                    // Otherwise, just update the node
-                    n->updateMinMaxLeaves();
-                    result.node = n;
-                }
-
-                result.leaf = childResult.leaf;
-                return result;
-            }
-
-            // No edge found, nothing to delete
-            result.node = n;
-            return result;
-        }
-
-        // Deletes all nodes under a given prefix
         struct DeletePrefixResult {
             std::shared_ptr<Node<K, T>> node;
             int numDeletions;
         };
 
-        DeletePrefixResult deletePrefix(std::shared_ptr<Node<K, T>> n, const K& search) {
-            DeletePrefixResult result;
-            result.node = nullptr;
-            result.numDeletions = 0;
-
-            // If we're at the end of the search, delete the entire subtree
-            if (search.empty()) {
-                // Count the leaves in the subtree
-                int count = 0;
-                std::function<void(std::shared_ptr<Node<K, T>>)> countLeaves = 
-                    [&count, &countLeaves](std::shared_ptr<Node<K, T>> node) {
-                        if (node->leaf) count++;
-                        for (const auto& edge : node->edges) {
-                            countLeaves(edge.node);
-                        }
-                    };
-                
-                countLeaves(n);
-                result.numDeletions = count;
-                size -= count;
-                return result;
-            }
-
-            // Look for an edge
-            if (search.empty()) {
-                result.node = n;
-                return result;
-            }
-            int idx;
-            auto child = n->getEdge(search[0], &idx);
-            if (child) {
-                // Check if the child's prefix is a prefix of the search
-                if (hasPrefix(search, child->prefix)) {
-                    // Consume the search prefix
-                    K newSearch = search;
-                    if (!child->prefix.empty() && !newSearch.empty()) {
-                        newSearch.erase(newSearch.begin(), newSearch.begin() + std::min(child->prefix.size(), newSearch.size()));
-                    }
-
-                    // Recurse
-                    auto childResult = deletePrefix(child, newSearch);
-                    
-                    if (childResult.node != child) {
-                        // Child was modified, update the edge
-                        if (childResult.node) {
-                            Edge<K, T> e = n->edges[idx];
-                            e.node = childResult.node;
-                            n->replaceEdge(e);
-                        } else {
-                            n->delEdge(search[0]);
-                        }
-                    }
-
-                    // If the node has no edges and no leaf, it can be removed
-                    if (n->edges.empty() && !n->leaf) {
-                        result.node = nullptr;
-                    } else {
-                        // Otherwise, just update the node
-                        n->updateMinMaxLeaves();
-                        result.node = n;
-                    }
-
-                    result.numDeletions = childResult.numDeletions;
-                    return result;
-                } else if (hasPrefix(child->prefix, search)) {
-                    // The search is a prefix of the child's prefix, delete the entire child
-                    int count = 0;
-                    std::function<void(std::shared_ptr<Node<K, T>>)> countLeaves = 
-                        [&count, &countLeaves](std::shared_ptr<Node<K, T>> node) {
-                            if (node->leaf) count++;
-                            for (const auto& edge : node->edges) {
-                                countLeaves(edge.node);
-                            }
-                        };
-                    
-                    countLeaves(child);
-                    result.numDeletions = count;
-                    size -= count;
-                    n->delEdge(search[0]);
-                    result.node = n;
-                    return result;
-                }
-            }
-
-            // No matching prefix found
-            result.node = n;
-            return result;
-        }
-
-        // Merges the given node with its single child
-        void mergeChild(std::shared_ptr<Node<K, T>> n) {
-            if (n->edges.size() != 1) return;
-
-            auto child = n->edges[0].node;
-            child->prefix = concat(n->prefix, child->prefix);
-            n->edges = child->edges;
-            n->leaf = child->leaf;
-            n->minLeaf = child->minLeaf;
-            n->maxLeaf = child->maxLeaf;
-        }
-
-        // Traverses the subtree at n, tracking channels and counting leaves
-        int trackChannelsAndCount(std::shared_ptr<Node<K, T>> n) {
-            int count = 0;
-            if (n->leaf) count++;
-            for (const auto& edge : n->edges) {
-                count += trackChannelsAndCount(edge.node);
-            }
-            return count;
-        }
-
-        // Clones the transaction
-        Transaction clone() {
-            return *this;
-        }
-
-        // Commits the transaction and returns a new Tree
-        RadixTree<K, T> commit() {
-            tree.root = root;
-            tree.size = size;
-            return tree;
-        }
-
-        // Commits the transaction without issuing notifications
-        RadixTree<K, T> commitOnly() {
-            tree.root = root;
-            tree.size = size;
-            return tree;
-        }
+        DeletePrefixResult deletePrefix(std::shared_ptr<Node<K, T>> n, const K& search);
+        void mergeChild(std::shared_ptr<Node<K, T>> n);
+        int trackChannelsAndCount(std::shared_ptr<Node<K, T>> n);
+        Transaction clone();
+        RadixTree<K, T> commit();
+        RadixTree<K, T> commitOnly();
     };
 
-    // Starts a new transaction on the tree
-    Transaction txn() {
-        return Transaction(*this);
-    }
-
-    // Inserts a key/value pair into the tree (transactionally)
-    std::tuple<RadixTree<K, T>, std::optional<T>, bool> insert(const K& k, const T& v) {
-        auto t = txn();
-        auto [newRoot, oldVal, didUpdate] = t.insert(root, k, k, v);
-        t.root = newRoot;
-        return {t.commit(), oldVal, didUpdate};
-    }
-
-    // Deletes a key from the tree
-    std::tuple<RadixTree<K, T>, std::optional<T>, bool> del(const K& k) {
-        auto t = txn();
-        auto result = t.del(nullptr, root, k);
-        t.root = result.node ? result.node : root;
-        return {t.commit(), result.leaf ? std::optional<T>(result.leaf->val) : std::nullopt, result.leaf != nullptr};
-    }
-
-    // Deletes all nodes starting with the given prefix
-    std::tuple<RadixTree<K, T>, bool, int> deletePrefix(const K& k) {
-        auto t = txn();
-        auto result = t.deletePrefix(root, k);
-        t.root = result.node ? result.node : root;
-        return {t.commit(), result.numDeletions > 0, result.numDeletions};
-    }
-
-    // Looks up a key in the tree
-    std::optional<T> Get(const K& search) const {
-        return root->Get(search);
-    }
-
-    // Creates an iterator for the tree
-    Iterator<K, T> iterator() const {
-        return Iterator<K, T>(root);
-    }
+    Transaction txn();
+    std::tuple<RadixTree<K, T>, std::optional<T>, bool> insert(const K& k, const T& v);
+    std::tuple<RadixTree<K, T>, std::optional<T>, bool> del(const K& k);
+    std::tuple<RadixTree<K, T>, bool, int> deletePrefix(const K& k);
+    std::optional<T> Get(const K& search) const;
+    Iterator<K, T> iterator() const;
 };
 
-#endif //RADIX_H
+// Non-template function declaration
+void initializeRadixTree();
+
+// Explicit template instantiation declarations
+extern template class RadixTree<std::string, std::string>;
+extern template class RadixTree<std::string, int>;
+extern template class RadixTree<std::string, double>;
+
+#endif // RADIX_H
