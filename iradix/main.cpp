@@ -7,8 +7,9 @@
 #include <string>
 #include <vector>
 #include <regex>
+#include <fstream>
+#include <sstream>
 
-// Example usage of the template-based radix tree
 int main() {
     // Example 1: Using std::vector<uint8_t> as key type and std::string as value type
     std::cout << "Example 1: Using std::vector<uint8_t> as key type and std::string as value type" << std::endl;
@@ -108,7 +109,64 @@ int main() {
     while (true) {
         auto result = rit.previous();
         if (!result.found) break;
-        
+        std::cout << "  " << result.key << ": " << result.val << std::endl;
+    }
+
+    // Example 6: Testing with words from words.txt
+    std::cout << "\nExample 6: Testing RadixTree with words from words.txt" << std::endl;
+    
+    // Create a radix tree with string keys and int values
+    RadixTree<std::string, int> wordTree;
+    std::vector<std::string> words;
+    
+    // Read words from file
+    std::ifstream file("words.txt");
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open words.txt" << std::endl;
+        return 1;
+    }
+    
+    std::string word;
+    int value = 1;
+    while (std::getline(file, word)) {
+        // Remove any trailing whitespace
+        word.erase(word.find_last_not_of(" \n\r\t") + 1);
+        if (!word.empty()) {
+            words.push_back(word);
+            auto [newTree, oldVal, didUpdate] = wordTree.insert(word, value);
+            wordTree = newTree;
+            value++;
+        }
+    }
+    file.close();
+    
+    std::cout << "\nVerifying all inserted words:" << std::endl;
+    int totalWords = 0;
+    int foundWords = 0;
+    
+    for (const auto& word : words) {
+        totalWords++;
+        auto val = wordTree.Get(word);
+        if (val) {
+            foundWords++;
+            std::cout << word << ": " << *val << std::endl;
+        } else {
+            std::cout << "ERROR: Word '" << word << "' not found!" << std::endl;
+        }
+    }
+    
+    std::cout << "\nSummary:" << std::endl;
+    std::cout << "Total words processed: " << totalWords << std::endl;
+    std::cout << "Words found in tree: " << foundWords << std::endl;
+    std::cout << "Success rate: " << (foundWords * 100.0 / totalWords) << "%" << std::endl;
+    
+    std::cout << "\nTesting reverse iteration from 'mango':" << std::endl;
+    auto wordRit = ReverseIterator<std::string, int>(wordTree.getRoot());
+    wordRit.seekReverseLowerBound("mango");
+    
+    while (true) {
+        auto result = wordRit.previous();
+        if (!result.found) break;
         std::cout << "  " << result.key << ": " << result.val << std::endl;
     }
     
