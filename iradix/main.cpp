@@ -93,6 +93,24 @@ int main() {
         
         std::cout << "  " << result.key << ": " << result.val << std::endl;
     }
+
+    // Example 5: Using reverse iterator
+    std::cout << "\nExample 5: Using reverse iterator" << std::endl;
+    
+    // Create a reverse iterator
+    auto rit = ReverseIterator<std::string, int>(tree2_5.getRoot());
+    
+    // Seek to a lower bound
+    rit.seekReverseLowerBound("banana");
+    
+    // Iterate backwards from the lower bound
+    std::cout << "All key-value pairs in reverse order from 'banana':" << std::endl;
+    while (true) {
+        auto result = rit.previous();
+        if (!result.found) break;
+        
+        std::cout << "  " << result.key << ": " << result.val << std::endl;
+    }
     
     return 0;
 }
