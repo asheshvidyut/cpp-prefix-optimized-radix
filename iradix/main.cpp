@@ -26,9 +26,9 @@ int main() {
     auto [tree1_3, oldVal3, didUpdate3] = tree1_2.insert(key3, "planet");
     
     // Look up values
-    auto val1 = tree1_3.get(key1);
-    auto val2 = tree1_3.get(key2);
-    auto val3 = tree1_3.get(key3);
+    auto val1 = tree1_3.Get(key1);
+    auto val2 = tree1_3.Get(key2);
+    auto val3 = tree1_3.Get(key3);
     
     std::cout << "Value for 'hello': " << (val1 ? *val1 : "not found") << std::endl;
     std::cout << "Value for 'help': " << (val2 ? *val2 : "not found") << std::endl;
@@ -36,7 +36,7 @@ int main() {
     
     // Delete a key
     auto [tree1_4, oldVal4, found4] = tree1_3.del(key2);
-    auto val2_after_delete = tree1_4.get(key2);
+    auto val2_after_delete = tree1_4.Get(key2);
     std::cout << "Value for 'help' after delete: " << (val2_after_delete ? *val2_after_delete : "not found") << std::endl;
     
     // Example 2: Using std::string as key type and int as value type
@@ -51,9 +51,9 @@ int main() {
     auto [tree2_3, oldVal7, didUpdate7] = tree2_2.insert("cherry", 3);
     
     // Look up values
-    auto val4 = tree2_3.get("apple");
-    auto val5 = tree2_3.get("banana");
-    auto val6 = tree2_3.get("cherry");
+    auto val4 = tree2_3.Get("apple");
+    auto val5 = tree2_3.Get("banana");
+    auto val6 = tree2_3.Get("cherry");
     
     std::cout << "Value for 'apple': " << (val4 ? std::to_string(*val4) : "not found") << std::endl;
     std::cout << "Value for 'banana': " << (val5 ? std::to_string(*val5) : "not found") << std::endl;

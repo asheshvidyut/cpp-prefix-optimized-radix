@@ -32,38 +32,22 @@ template<typename K, typename T>
 class Iterator {
 private:
     std::shared_ptr<Node<K, T>> node;
-    std::vector<std::vector<Edge<K, T>>> stack;
-    std::shared_ptr<LeafNode<K, T>> leafNode;
-    K key;
+    std::vector<std::pair<std::shared_ptr<Node<K, T>>, size_t>> stack;  // Node and edge index
+    K prefix;
     bool patternMatch;
     std::shared_ptr<regex_t> pattern;
 
-    // Helper function to find minimum node recursively
-    std::shared_ptr<Node<K, T>> recurseMin(std::shared_ptr<Node<K, T>> n) {
-        if (n->leaf) {
-            return n;
-        }
-        
-        size_t nEdges = n->edges.size();
-        if (nEdges > 1) {
-            // Add all the other edges to the stack (the min node will be added as
-            // we recurse)
-            stack.push_back(std::vector<Edge<K, T>>(n->edges.begin() + 1, n->edges.end()));
-        }
-        
-        if (nEdges > 0) {
-            return recurseMin(n->edges[0].node);
-        }
-        
-        // Shouldn't be possible
-        return nullptr;
+    // Helper function to push all edges of a node onto the stack
+    void pushEdges(std::shared_ptr<Node<K, T>> n) {
+        if (!n || n->edges.empty()) return;
+        stack.emplace_back(n, 0);
     }
 
 public:
     explicit Iterator(std::shared_ptr<Node<K, T>> root) 
-        : node(root), leafNode(nullptr), patternMatch(false) {
+        : node(root), patternMatch(false) {
         if (node) {
-            node->mutateCh = std::make_shared<std::condition_variable>();
+            pushEdges(node);
         }
     }
 
@@ -73,131 +57,47 @@ public:
         pattern = std::shared_ptr<regex_t>(regex, [](regex_t* p) { /* No-op deleter */ });
     }
 
-    // Seeks the iterator to a given prefix (watch variant)
-    std::shared_ptr<std::condition_variable> seekPrefixWatch(const K& prefix) {
-        // Wipe the stack
-        stack.clear();
-        std::shared_ptr<Node<K, T>> n = node;
-        auto watch = n->mutateCh;
-        K search = prefix;
-
-        while (true) {
-            // Check for key exhaustion
-            if (search.empty()) {
-                node = n;
-                return watch;
-            }
-
-            // Look for an edge
-            n = n->getEdge(search[0]);
-            if (!n) {
-                node = nullptr;
-                return watch;
-            }
-
-            // Update to the finest granularity as the search makes progress
-            watch = n->mutateCh;
-
-            // Consume the search prefix
-            if (hasPrefix(search, n->prefix)) {
-                search.erase(search.begin(), search.begin() + n->prefix.size());
-            } else if (hasPrefix(n->prefix, search)) {
-                node = n;
-                return watch;
-            } else {
-                node = nullptr;
-                return watch;
-            }
-        }
-    }
-
     // Seeks the iterator to a given prefix
     void seekPrefix(const K& prefix) {
+        // Reset state
+        this->prefix = prefix;
+        stack.clear();
+        
         if (prefix.empty()) {
-            // Handle empty prefix case
-            stack.clear();
-            if (node) {
-                std::vector<Edge<K, T>> edges;
-                for (const auto& edge : node->edges) {
-                    edges.push_back(edge);
-                }
-                stack.push_back(edges);
-            }
+            // Handle empty prefix case - start from root
+            pushEdges(node);
             return;
         }
-        seekPrefixWatch(prefix);
-    }
 
-    // Seeks the iterator to the smallest key that is greater or equal to the given key
-    void seekLowerBound(const K& key) {
-        // Wipe the stack
-        stack.clear();
-        std::shared_ptr<Node<K, T>> n = node;
-        node = nullptr;
-        K search = key;
+        // Start from root and traverse to the prefix
+        auto current = node;
+        K search = prefix;
 
-        auto found = [this](std::shared_ptr<Node<K, T>> n) {
-            std::vector<Edge<K, T>> single_edge;
-            single_edge.push_back(Edge<K, T>{n->prefix[0], n});
-            stack.push_back(single_edge);
-        };
-
-        auto findMin = [this, &found](std::shared_ptr<Node<K, T>> n) {
-            n = recurseMin(n);
-            if (n) {
-                found(n);
-            }
-        };
-
-        while (true) {
-            // Compare current prefix with the search key's same-length prefix
-            int prefixCmp;
-            if (n->prefix.size() < search.size()) {
-                prefixCmp = compareKeys(n->prefix, 
-                    K(search.begin(), search.begin() + n->prefix.size()));
-            } else {
-                prefixCmp = compareKeys(n->prefix, search);
-            }
-
-            if (prefixCmp > 0) {
-                findMin(n);
-                return;
-            }
-
-            if (prefixCmp < 0) {
+        while (current && !search.empty()) {
+            // Look for an edge
+            auto child = current->getEdge(search[0]);
+            if (!child) {
                 node = nullptr;
                 return;
             }
 
-            // Check for exact match at leaf
-            if (n->leaf && n->leaf->key == key) {
-                found(n);
+            // Check if the child's prefix matches our search
+            if (hasPrefix(search, child->prefix)) {
+                search.erase(search.begin(), search.begin() + child->prefix.size());
+                current = child;
+            } else if (hasPrefix(child->prefix, search)) {
+                // The search is a prefix of the child's prefix
+                node = child;
+                pushEdges(child);
+                return;
+            } else {
+                node = nullptr;
                 return;
             }
-
-            // Consume the search prefix
-            search.erase(search.begin(), search.begin() + n->prefix.size());
-
-            if (search.empty()) {
-                findMin(n);
-                return;
-            }
-
-            // Get lower bound edge
-            int idx;
-            auto lbNode = n->getLowerBoundEdge(search[0], &idx);
-            if (!lbNode) {
-                return;
-            }
-
-            // Add higher edges to stack
-            if (idx + 1 < n->edges.size()) {
-                stack.push_back(std::vector<Edge<K, T>>(
-                    n->edges.begin() + idx + 1, n->edges.end()));
-            }
-
-            n = lbNode;
         }
+
+        node = current;
+        pushEdges(current);
     }
 
     // Returns the next element from the iterator
@@ -205,40 +105,50 @@ public:
         IteratorResult<K, T> result;
         result.found = false;
 
-        // If we have a current leaf node, try to get the next one
-        if (leafNode) {
-            if (leafNode->nextLeaf) {
-                leafNode = leafNode->nextLeaf;
-                result.key = leafNode->key;
-                result.val = leafNode->val;
+        // Check if we have a current node with a leaf
+        if (node && node->leaf) {
+            // If we have a prefix, make sure the leaf matches it
+            if (prefix.empty() || hasPrefix(node->leaf->key, prefix)) {
+                result.key = node->leaf->key;
+                result.val = node->leaf->val;
                 result.found = true;
-                return result;
             }
-            leafNode = nullptr;
+            node = nullptr;  // Move past this leaf
             return result;
         }
 
-        // If we don't have a current node, start from the root
-        if (!node) {
-            return result;
-        }
-
-        // Find the leftmost leaf node
-        std::shared_ptr<Node<K, T>> current = node;
-        while (current) {
-            if (current->leaf) {
-                leafNode = current->leaf;
-                result.key = leafNode->key;
-                result.val = leafNode->val;
-                result.found = true;
-                return result;
+        // Process the stack
+        while (!stack.empty()) {
+            auto& [current, edgeIdx] = stack.back();
+            
+            // If we've processed all edges of the current node, pop it
+            if (edgeIdx >= current->edges.size()) {
+                stack.pop_back();
+                continue;
             }
 
-            if (current->edges.empty()) {
-                break;
+            // Get the next edge
+            auto edge = current->edges[edgeIdx++];
+            auto next = edge.node;
+
+            // If this is a leaf node, return its value
+            if (next->leaf) {
+                if (prefix.empty() || hasPrefix(next->leaf->key, prefix)) {
+                    result.key = next->leaf->key;
+                    result.val = next->leaf->val;
+                    result.found = true;
+                    
+                    // If there are more edges, push them onto the stack
+                    if (!next->edges.empty()) {
+                        pushEdges(next);
+                    }
+                    
+                    return result;
+                }
             }
 
-            current = current->edges[0].node;
+            // Push the next node's edges onto the stack
+            pushEdges(next);
         }
 
         return result;
@@ -249,23 +159,6 @@ private:
     static bool hasPrefix(const K& str, const K& prefix) {
         if (str.size() < prefix.size()) return false;
         return std::equal(prefix.begin(), prefix.end(), str.begin());
-    }
-
-    // Helper function to compare two sequences
-    static int compareKeys(const K& a, const K& b) {
-        auto it1 = a.begin();
-        auto it2 = b.begin();
-        
-        while (it1 != a.end() && it2 != b.end()) {
-            if (*it1 < *it2) return -1;
-            if (*it1 > *it2) return 1;
-            ++it1;
-            ++it2;
-        }
-        
-        if (it1 == a.end() && it2 == b.end()) return 0;
-        if (it1 == a.end()) return -1;
-        return 1;
     }
 };
 

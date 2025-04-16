@@ -11,6 +11,16 @@
 #include <algorithm>
 #include <cstring>
 #include <condition_variable>
+#include <optional>
+
+// Helper function to check if a string has a prefix
+template<typename K>
+bool hasPrefix(const K& str, const K& prefix) {
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    return std::equal(prefix.begin(), prefix.end(), str.begin());
+}
 
 // Forward declarations
 template<typename K, typename T>
@@ -175,6 +185,24 @@ public:
     // Checks if the node is a leaf
     bool isLeaf() const {
         return leaf != nullptr;
+    }
+
+    // Gets a value from the node given a key
+    std::optional<T> Get(const K& search) const {
+        if (search.empty()) {
+            if (leaf) {
+                return leaf->val;
+            }
+            return std::nullopt;
+        }
+
+        for (const auto& edge : edges) {
+            if (hasPrefix(search, edge.node->prefix)) {
+                K newSearch(search.begin() + edge.node->prefix.size(), search.end());
+                return edge.node->Get(newSearch);
+            }
+        }
+        return std::nullopt;
     }
 };
 
