@@ -2,8 +2,8 @@
 // Created by Ashesh Vidyut on 22/03/25.
 //
 
-#ifndef RADIX_H
-#define RADIX_H
+#ifndef TREE_H
+#define TREE_H
 
 #include "node.hpp"
 #include "iterator.hpp"
@@ -23,7 +23,7 @@ class LeafNode;
 
 // Tree class
 template<typename K, typename T>
-class RadixTree {
+class Tree {
 private:
     std::shared_ptr<Node<K, T>> root;
     int size;
@@ -31,7 +31,7 @@ private:
     friend class Transaction;
 
 public:
-    RadixTree();
+    Tree();
     std::shared_ptr<Node<K, T>> getRoot() const;
     int len() const;
 
@@ -40,12 +40,12 @@ public:
     protected:
         std::shared_ptr<Node<K, T>> root;
         int size;
-        RadixTree<K, T>& tree;
+        Tree<K, T>& tree;
 
-        friend class RadixTree;
+        friend class Tree;
 
     public:
-        Transaction(RadixTree<K, T>& t);
+        Transaction(Tree<K, T>& t);
 
         std::tuple<std::shared_ptr<Node<K, T>>, std::optional<T>, bool> insert(
             std::shared_ptr<Node<K, T>> n,
@@ -69,24 +69,24 @@ public:
         void mergeChild(std::shared_ptr<Node<K, T>> n);
         int trackChannelsAndCount(std::shared_ptr<Node<K, T>> n);
         Transaction clone();
-        RadixTree<K, T> commit();
-        RadixTree<K, T> commitOnly();
+        Tree<K, T> commit();
+        Tree<K, T> commitOnly();
     };
 
     Transaction txn();
-    std::tuple<RadixTree<K, T>, std::optional<T>, bool> insert(const K& k, const T& v);
-    std::tuple<RadixTree<K, T>, std::optional<T>, bool> del(const K& k);
-    std::tuple<RadixTree<K, T>, bool, int> deletePrefix(const K& k);
+    std::tuple<Tree<K, T>, std::optional<T>, bool> insert(const K& k, const T& v);
+    std::tuple<Tree<K, T>, std::optional<T>, bool> del(const K& k);
+    std::tuple<Tree<K, T>, bool, int> deletePrefix(const K& k);
     std::optional<T> Get(const K& search) const;
     Iterator<K, T> iterator() const;
 };
 
 // Non-template function declaration
-void initializeRadixTree();
+void initializeTree();
 
 // Explicit template instantiation declarations
-extern template class RadixTree<std::string, std::string>;
-extern template class RadixTree<std::string, int>;
-extern template class RadixTree<std::string, double>;
+extern template class Tree<std::string, std::string>;
+extern template class Tree<std::string, int>;
+extern template class Tree<std::string, double>;
 
-#endif // RADIX_H
+#endif // TREE_H

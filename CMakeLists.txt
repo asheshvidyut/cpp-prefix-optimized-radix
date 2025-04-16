@@ -11,14 +11,14 @@ include_directories(${CMAKE_SOURCE_DIR})
 # Add source files
 set(SOURCES
     main.cpp
-    iradix/radix.cpp
+    iradix/tree.cpp
     iradix/node.cpp
     iradix/iterator.cpp
 )
 
 # Add header files
 set(HEADERS
-    iradix/radix.hpp
+    iradix/tree.hpp
     iradix/node.hpp
     iradix/iterator.hpp
 )

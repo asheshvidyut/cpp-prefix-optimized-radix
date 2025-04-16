@@ -2,18 +2,18 @@
 // Created by Ashesh Vidyut on 22/03/25.
 //
 
-#include "radix.hpp"
+#include "tree.hpp"
 #include <algorithm>
 #include <cstring>
 
 // This file is intentionally left mostly empty as the implementation is now in the header file.
-// The template-based implementation is defined in radix.hpp.
+// The template-based implementation is defined in tree.hpp.
 
 // If you need to add any non-template functions or implementations that can't be in the header,
 // you can add them here.
 
 // Example of a non-template helper function that might be needed:
-void initializeRadixTree() {
+void initializeTree() {
     // Initialize any global state or resources needed for radix trees
     // This could include:
     // - Setting up memory pools
@@ -24,27 +24,27 @@ void initializeRadixTree() {
 
 // Constructor implementation
 template<typename K, typename T>
-RadixTree<K, T>::RadixTree() : root(std::make_shared<Node<K, T>>()), size(0) {
+Tree<K, T>::Tree() : root(std::make_shared<Node<K, T>>()), size(0) {
     root->mutateCh = std::make_shared<std::condition_variable>();
 }
 
 template<typename K, typename T>
-std::shared_ptr<Node<K, T>> RadixTree<K, T>::getRoot() const {
+std::shared_ptr<Node<K, T>> Tree<K, T>::getRoot() const {
     return root;
 }
 
 template<typename K, typename T>
-int RadixTree<K, T>::len() const {
+int Tree<K, T>::len() const {
     return size;
 }
 
 // Transaction constructor
 template<typename K, typename T>
-RadixTree<K, T>::Transaction::Transaction(RadixTree<K, T>& t) : root(t.root), size(t.size), tree(t) {}
+Tree<K, T>::Transaction::Transaction(Tree<K, T>& t) : root(t.root), size(t.size), tree(t) {}
 
 // Transaction methods
 template<typename K, typename T>
-std::tuple<std::shared_ptr<Node<K, T>>, std::optional<T>, bool> RadixTree<K, T>::Transaction::insert(
+std::tuple<std::shared_ptr<Node<K, T>>, std::optional<T>, bool> Tree<K, T>::Transaction::insert(
     std::shared_ptr<Node<K, T>> n,
     const K& k,
     const K& search,
@@ -147,7 +147,7 @@ std::tuple<std::shared_ptr<Node<K, T>>, std::optional<T>, bool> RadixTree<K, T>:
 }
 
 template<typename K, typename T>
-typename RadixTree<K, T>::Transaction::DeleteResult RadixTree<K, T>::Transaction::del(
+typename Tree<K, T>::Transaction::DeleteResult Tree<K, T>::Transaction::del(
     std::shared_ptr<Node<K, T>> parent,
     std::shared_ptr<Node<K, T>> n,
     const K& search) {
@@ -234,7 +234,7 @@ typename RadixTree<K, T>::Transaction::DeleteResult RadixTree<K, T>::Transaction
 }
 
 template<typename K, typename T>
-typename RadixTree<K, T>::Transaction::DeletePrefixResult RadixTree<K, T>::Transaction::deletePrefix(
+typename Tree<K, T>::Transaction::DeletePrefixResult Tree<K, T>::Transaction::deletePrefix(
     std::shared_ptr<Node<K, T>> n,
     const K& search) {
     
@@ -327,7 +327,7 @@ typename RadixTree<K, T>::Transaction::DeletePrefixResult RadixTree<K, T>::Trans
 }
 
 template<typename K, typename T>
-void RadixTree<K, T>::Transaction::mergeChild(std::shared_ptr<Node<K, T>> n) {
+void Tree<K, T>::Transaction::mergeChild(std::shared_ptr<Node<K, T>> n) {
     if (n->edges.size() != 1) return;
 
     auto child = n->edges[0].node;
@@ -339,7 +339,7 @@ void RadixTree<K, T>::Transaction::mergeChild(std::shared_ptr<Node<K, T>> n) {
 }
 
 template<typename K, typename T>
-int RadixTree<K, T>::Transaction::trackChannelsAndCount(std::shared_ptr<Node<K, T>> n) {
+int Tree<K, T>::Transaction::trackChannelsAndCount(std::shared_ptr<Node<K, T>> n) {
     int count = 0;
     if (n->leaf) count++;
     for (const auto& edge : n->edges) {
@@ -349,32 +349,32 @@ int RadixTree<K, T>::Transaction::trackChannelsAndCount(std::shared_ptr<Node<K, 
 }
 
 template<typename K, typename T>
-typename RadixTree<K, T>::Transaction RadixTree<K, T>::Transaction::clone() {
+typename Tree<K, T>::Transaction Tree<K, T>::Transaction::clone() {
     return *this;
 }
 
 template<typename K, typename T>
-RadixTree<K, T> RadixTree<K, T>::Transaction::commit() {
+Tree<K, T> Tree<K, T>::Transaction::commit() {
     tree.root = root;
     tree.size = size;
     return tree;
 }
 
 template<typename K, typename T>
-RadixTree<K, T> RadixTree<K, T>::Transaction::commitOnly() {
+Tree<K, T> Tree<K, T>::Transaction::commitOnly() {
     tree.root = root;
     tree.size = size;
     return tree;
 }
 
-// RadixTree methods
+// Tree methods
 template<typename K, typename T>
-typename RadixTree<K, T>::Transaction RadixTree<K, T>::txn() {
+typename Tree<K, T>::Transaction Tree<K, T>::txn() {
     return Transaction(*this);
 }
 
 template<typename K, typename T>
-std::tuple<RadixTree<K, T>, std::optional<T>, bool> RadixTree<K, T>::insert(const K& k, const T& v) {
+std::tuple<Tree<K, T>, std::optional<T>, bool> Tree<K, T>::insert(const K& k, const T& v) {
     auto t = txn();
     auto [newRoot, oldVal, didUpdate] = t.insert(root, k, k, v);
     t.root = newRoot;
@@ -382,7 +382,7 @@ std::tuple<RadixTree<K, T>, std::optional<T>, bool> RadixTree<K, T>::insert(cons
 }
 
 template<typename K, typename T>
-std::tuple<RadixTree<K, T>, std::optional<T>, bool> RadixTree<K, T>::del(const K& k) {
+std::tuple<Tree<K, T>, std::optional<T>, bool> Tree<K, T>::del(const K& k) {
     auto t = txn();
     auto result = t.del(nullptr, root, k);
     t.root = result.node ? result.node : root;
@@ -390,7 +390,7 @@ std::tuple<RadixTree<K, T>, std::optional<T>, bool> RadixTree<K, T>::del(const K
 }
 
 template<typename K, typename T>
-std::tuple<RadixTree<K, T>, bool, int> RadixTree<K, T>::deletePrefix(const K& k) {
+std::tuple<Tree<K, T>, bool, int> Tree<K, T>::deletePrefix(const K& k) {
     auto t = txn();
     auto result = t.deletePrefix(root, k);
     t.root = result.node ? result.node : root;
@@ -398,17 +398,17 @@ std::tuple<RadixTree<K, T>, bool, int> RadixTree<K, T>::deletePrefix(const K& k)
 }
 
 template<typename K, typename T>
-std::optional<T> RadixTree<K, T>::Get(const K& search) const {
+std::optional<T> Tree<K, T>::Get(const K& search) const {
     return root->Get(search);
 }
 
 template<typename K, typename T>
-Iterator<K, T> RadixTree<K, T>::iterator() const {
+Iterator<K, T> Tree<K, T>::iterator() const {
     return Iterator<K, T>(root);
 }
 
 // Explicit template instantiations
-template class RadixTree<std::string, std::string>;
-template class RadixTree<std::string, int>;
-template class RadixTree<std::string, double>;
-template class RadixTree<std::vector<uint8_t>, std::string>; 
+template class Tree<std::string, std::string>;
+template class Tree<std::string, int>;
+template class Tree<std::string, double>;
+template class Tree<std::vector<uint8_t>, std::string>; 

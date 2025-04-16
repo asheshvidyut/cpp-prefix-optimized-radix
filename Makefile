@@ -177,29 +177,29 @@ iradix/node.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/node.cpp.s
 .PHONY : iradix/node.cpp.s
 
-iradix/radix.o: iradix/radix.cpp.o
-.PHONY : iradix/radix.o
+iradix/tree.o: iradix/tree.cpp.o
+.PHONY : iradix/tree.o
 
 # target to build an object file
-iradix/radix.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/radix.cpp.o
-.PHONY : iradix/radix.cpp.o
+iradix/tree.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/tree.cpp.o
+.PHONY : iradix/tree.cpp.o
 
-iradix/radix.i: iradix/radix.cpp.i
-.PHONY : iradix/radix.i
+iradix/tree.i: iradix/tree.cpp.i
+.PHONY : iradix/tree.i
 
 # target to preprocess a source file
-iradix/radix.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/radix.cpp.i
-.PHONY : iradix/radix.cpp.i
+iradix/tree.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/tree.cpp.i
+.PHONY : iradix/tree.cpp.i
 
-iradix/radix.s: iradix/radix.cpp.s
-.PHONY : iradix/radix.s
+iradix/tree.s: iradix/tree.cpp.s
+.PHONY : iradix/tree.s
 
 # target to generate assembly for a file
-iradix/radix.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/radix.cpp.s
-.PHONY : iradix/radix.cpp.s
+iradix/tree.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/tree.cpp.s
+.PHONY : iradix/tree.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -240,9 +240,9 @@ help:
 	@echo "... iradix/node.o"
 	@echo "... iradix/node.i"
 	@echo "... iradix/node.s"
-	@echo "... iradix/radix.o"
-	@echo "... iradix/radix.i"
-	@echo "... iradix/radix.s"
+	@echo "... iradix/tree.o"
+	@echo "... iradix/tree.i"
+	@echo "... iradix/tree.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

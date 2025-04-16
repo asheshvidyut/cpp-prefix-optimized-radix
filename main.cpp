@@ -2,7 +2,7 @@
 // Created by Ashesh Vidyut on 22/03/25.
 //
 
-#include "iradix/radix.hpp"
+#include "iradix/tree.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -15,7 +15,7 @@ int main() {
     std::cout << "Example 1: Using std::vector<uint8_t> as key type and std::string as value type" << std::endl;
     
     // Create a radix tree with vector<uint8_t> keys and string values
-    RadixTree<std::vector<uint8_t>, std::string> tree1;
+    Tree<std::vector<uint8_t>, std::string> tree1;
     
     // Insert some key-value pairs
     std::vector<uint8_t> key1 = {'h', 'e', 'l', 'l', 'o'};
@@ -44,7 +44,7 @@ int main() {
     std::cout << "\nExample 2: Using std::string as key type and int as value type" << std::endl;
     
     // Create a radix tree with string keys and int values
-    RadixTree<std::string, int> tree2;
+    Tree<std::string, int> tree2;
     
     // Insert some key-value pairs
     auto [tree2_1, oldVal5, didUpdate5] = tree2.insert("apple", 1);
@@ -113,10 +113,10 @@ int main() {
     }
 
     // Example 6: Testing with words from words.txt
-    std::cout << "\nExample 6: Testing RadixTree with words from words.txt" << std::endl;
+    std::cout << "\nExample 6: Testing Tree with words from words.txt" << std::endl;
     
     // Create a radix tree with string keys and int values
-    RadixTree<std::string, int> wordTree;
+    Tree<std::string, int> wordTree;
     std::vector<std::string> words;
     
     // Read words from file
