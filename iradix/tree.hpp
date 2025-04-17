@@ -6,7 +6,7 @@
 #define TREE_H
 
 #include "node.hpp"
-#include "iterator.hpp"
+#include "iterator.cpp"
 #include <memory>
 #include <vector>
 #include <functional>
