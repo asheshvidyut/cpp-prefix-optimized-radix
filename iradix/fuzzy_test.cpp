@@ -52,32 +52,35 @@ void testIterateFuzz() {
     std::sort(keys.begin(), keys.end());
     
     // Test iteration from random points
-    for (int i = 0; i < 100; ++i) {
-        std::vector<std::pair<std::string, int>> radixResults;
-        auto it = tree.iterator();
-        it.seekPrefix("");
-        IteratorResult<std::string, int> result;
-        while ((result = it.next()).found) {
-            radixResults.push_back({result.key, result.val});
-            std::cout << "radixResults: " << result.key << " " << result.val << std::endl;
-        }
+    std::vector<std::pair<std::string, int>> radixResults;
+    auto it = tree.iterator();
+    it.seekPrefix("");
+    IteratorResult<std::string, int> result;
+    while ((result = it.next()).found) {
+        radixResults.push_back({result.key, result.val});
+    }
 
-        
-        std::vector<std::pair<std::string, int>> expectedResults;
-        for (size_t j = 0; j < keys.size(); ++j) {
-            std::string key = keys[j];
-            expectedResults.push_back({key, expectedValues[key]});
-            std::cout << "expectedResults: " << key << " " << expectedValues[key] << std::endl;
+    
+    std::vector<std::pair<std::string, int>> expectedResults;
+    // iterate over expectedValues
+    int idx = 0;
+    for (auto &kv : expectedValues) {
+        std::string key = kv.first;
+        if (idx < radixResults.size() && radixResults[idx].first == key) {
+            idx++;
+        } else {
+            std::cout << "ERROR: Not sorted" << std::endl;
         }
+        expectedResults.push_back({key, expectedValues[key]});
+    }
 
-        std::cout << "radixResults: " << radixResults.size() << std::endl;
-        std::cout << "expectedResults: " << expectedResults.size() << std::endl;
+    std::cout << "radixResults: " << radixResults.size() << std::endl;
+    std::cout << "expectedResults: " << expectedResults.size() << std::endl;
 
-        
-        if (radixResults != expectedResults) {
-            std::cerr << "Iteration test failed!" << std::endl;
-            exit(1);
-        }
+    
+    if (radixResults != expectedResults) {
+        std::cerr << "Iteration test failed!" << std::endl;
+        exit(1);
     }
 }
 
