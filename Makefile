@@ -129,12 +129,50 @@ iradix-cpp/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/build
 .PHONY : iradix-cpp/fast
 
+#=============================================================================
+# Target rules for targets named iradix-fuzzy-test
+
+# Build rule for target.
+iradix-fuzzy-test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 iradix-fuzzy-test
+.PHONY : iradix-fuzzy-test
+
+# fast build rule for target.
+iradix-fuzzy-test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/build
+.PHONY : iradix-fuzzy-test/fast
+
+fuzzy_test_main.o: fuzzy_test_main.cpp.o
+.PHONY : fuzzy_test_main.o
+
+# target to build an object file
+fuzzy_test_main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/fuzzy_test_main.cpp.o
+.PHONY : fuzzy_test_main.cpp.o
+
+fuzzy_test_main.i: fuzzy_test_main.cpp.i
+.PHONY : fuzzy_test_main.i
+
+# target to preprocess a source file
+fuzzy_test_main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/fuzzy_test_main.cpp.i
+.PHONY : fuzzy_test_main.cpp.i
+
+fuzzy_test_main.s: fuzzy_test_main.cpp.s
+.PHONY : fuzzy_test_main.s
+
+# target to generate assembly for a file
+fuzzy_test_main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/fuzzy_test_main.cpp.s
+.PHONY : fuzzy_test_main.cpp.s
+
 iradix/iterator.o: iradix/iterator.cpp.o
 .PHONY : iradix/iterator.o
 
 # target to build an object file
 iradix/iterator.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/iterator.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/iterator.cpp.o
 .PHONY : iradix/iterator.cpp.o
 
 iradix/iterator.i: iradix/iterator.cpp.i
@@ -143,6 +181,7 @@ iradix/iterator.i: iradix/iterator.cpp.i
 # target to preprocess a source file
 iradix/iterator.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/iterator.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/iterator.cpp.i
 .PHONY : iradix/iterator.cpp.i
 
 iradix/iterator.s: iradix/iterator.cpp.s
@@ -151,6 +190,7 @@ iradix/iterator.s: iradix/iterator.cpp.s
 # target to generate assembly for a file
 iradix/iterator.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/iterator.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/iterator.cpp.s
 .PHONY : iradix/iterator.cpp.s
 
 iradix/node.o: iradix/node.cpp.o
@@ -159,6 +199,7 @@ iradix/node.o: iradix/node.cpp.o
 # target to build an object file
 iradix/node.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/node.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/node.cpp.o
 .PHONY : iradix/node.cpp.o
 
 iradix/node.i: iradix/node.cpp.i
@@ -167,6 +208,7 @@ iradix/node.i: iradix/node.cpp.i
 # target to preprocess a source file
 iradix/node.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/node.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/node.cpp.i
 .PHONY : iradix/node.cpp.i
 
 iradix/node.s: iradix/node.cpp.s
@@ -175,6 +217,7 @@ iradix/node.s: iradix/node.cpp.s
 # target to generate assembly for a file
 iradix/node.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/node.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/node.cpp.s
 .PHONY : iradix/node.cpp.s
 
 iradix/tree.o: iradix/tree.cpp.o
@@ -183,6 +226,7 @@ iradix/tree.o: iradix/tree.cpp.o
 # target to build an object file
 iradix/tree.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/tree.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/tree.cpp.o
 .PHONY : iradix/tree.cpp.o
 
 iradix/tree.i: iradix/tree.cpp.i
@@ -191,6 +235,7 @@ iradix/tree.i: iradix/tree.cpp.i
 # target to preprocess a source file
 iradix/tree.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/tree.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/tree.cpp.i
 .PHONY : iradix/tree.cpp.i
 
 iradix/tree.s: iradix/tree.cpp.s
@@ -199,6 +244,7 @@ iradix/tree.s: iradix/tree.cpp.s
 # target to generate assembly for a file
 iradix/tree.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/iradix/tree.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-fuzzy-test.dir/build.make CMakeFiles/iradix-fuzzy-test.dir/iradix/tree.cpp.s
 .PHONY : iradix/tree.cpp.s
 
 main.o: main.cpp.o
@@ -234,6 +280,10 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... iradix-cpp"
+	@echo "... iradix-fuzzy-test"
+	@echo "... fuzzy_test_main.o"
+	@echo "... fuzzy_test_main.i"
+	@echo "... fuzzy_test_main.s"
 	@echo "... iradix/iterator.o"
 	@echo "... iradix/iterator.i"
 	@echo "... iradix/iterator.s"

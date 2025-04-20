@@ -153,8 +153,6 @@ int main() {
             if (val != counter) {
                 std::cout << "NOTOK";
                 std::cout << "ERROR: Value mismatch for word '" << word << "'!" << *val << " " << counter << std::endl;
-            } else {
-                std::cout << "OK" << std::endl;
             }
             counter++;
             std::cout << word << ": " << *val << std::endl;

@@ -10,7 +10,6 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 # Add source files
 set(SOURCES
-    main.cpp
     iradix/tree.cpp
     iradix/node.cpp
     iradix/iterator.cpp
@@ -22,8 +21,8 @@ set(HEADERS
     iradix/node.hpp
 )
 
-# Build the executable
-add_executable(iradix-cpp ${SOURCES} ${HEADERS})
+# Build the main executable
+add_executable(iradix-cpp main.cpp ${SOURCES} ${HEADERS})
 
 # Set output directory
 set_target_properties(iradix-cpp PROPERTIES
@@ -35,4 +34,19 @@ if(MSVC)
     target_compile_options(iradix-cpp PRIVATE /W4)
 else()
     target_compile_options(iradix-cpp PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Build the fuzzy test executable
+add_executable(iradix-fuzzy-test fuzzy_test_main.cpp ${SOURCES} ${HEADERS})
+
+# Set output directory for fuzzy test
+set_target_properties(iradix-fuzzy-test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+# Add compiler flags for fuzzy test
+if(MSVC)
+    target_compile_options(iradix-fuzzy-test PRIVATE /W4)
+else()
+    target_compile_options(iradix-fuzzy-test PRIVATE -Wall -Wextra -Wpedantic)
 endif()

@@ -1,0 +1,206 @@
+//
+// Created by Ashesh Vidyut on 22/03/25.
+//
+
+#include "tree.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <random>
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <map>
+#include "iterator.cpp"
+
+// Helper function to generate a random string from a limited alphabet
+std::string generateReadableString(size_t length) {
+    static const char alphabet[] = "abcdefg";
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<> dis(0, sizeof(alphabet) - 2);
+    
+    std::string result;
+    result.reserve(length);
+    for (size_t i = 0; i < length; ++i) {
+        result += alphabet[dis(gen)];
+    }
+    return result;
+}
+
+// Test function to verify that iterating in the radix tree
+// produces the same results as filtering a sorted list of keys
+void testIterateFuzz() {
+    Tree<std::string, int> tree;
+    std::vector<std::string> keys;
+    std::map<std::string, int> expectedValues;
+    
+    // Generate random keys and values
+    for (int i = 0; i < 1000; ++i) {
+        std::string key = generateReadableString(5);
+        int value = i;
+        keys.push_back(key);
+        expectedValues[key] = value;
+        
+        auto [newTree, oldVal, didUpdate] = tree.insert(key, value);
+        tree = newTree;
+    }
+    
+    // Sort keys for comparison
+    std::sort(keys.begin(), keys.end());
+    
+    // Test iteration from random points
+    for (int i = 0; i < 100; ++i) {
+        std::vector<std::pair<std::string, int>> radixResults;
+        auto it = tree.iterator();
+        it.seekPrefix("");
+        IteratorResult<std::string, int> result;
+        while ((result = it.next()).found) {
+            radixResults.push_back({result.key, result.val});
+            std::cout << "radixResults: " << result.key << " " << result.val << std::endl;
+        }
+
+        
+        std::vector<std::pair<std::string, int>> expectedResults;
+        for (size_t j = 0; j < keys.size(); ++j) {
+            std::string key = keys[j];
+            expectedResults.push_back({key, expectedValues[key]});
+            std::cout << "expectedResults: " << key << " " << expectedValues[key] << std::endl;
+        }
+
+        std::cout << "radixResults: " << radixResults.size() << std::endl;
+        std::cout << "expectedResults: " << expectedResults.size() << std::endl;
+
+        
+        if (radixResults != expectedResults) {
+            std::cerr << "Iteration test failed!" << std::endl;
+            exit(1);
+        }
+    }
+}
+
+// Test function to verify that the radix tree behaves correctly with random operations
+void testRandomOperationsFuzz() {
+    Tree<std::string, int> tree;
+    std::map<std::string, int> expectedValues;
+    
+    // Perform random operations
+    for (int i = 0; i < 10000; ++i) {
+        std::string key = generateReadableString(5);
+        int value = rand() % 1000;
+        
+        int op = rand() % 3;
+        switch (op) {
+            case 0: { // Insert
+                auto [newTree, oldVal, didUpdate] = tree.insert(key, value);
+                tree = newTree;
+                expectedValues[key] = value;
+                break;
+            }
+            case 1: { // Delete
+                auto [newTree, oldVal, didUpdate] = tree.del(key);
+                tree = newTree;
+                expectedValues.erase(key);
+                break;
+            }
+            case 2: { // Get
+                auto it = expectedValues.find(key);
+                if (it != expectedValues.end()) {
+                    auto val = tree.Get(key);
+                    if (!val || val.value() != it->second) {
+                        std::cerr << "Get operation test failed!" << std::endl;
+                        exit(1);
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    // Verify final state
+    for (const auto& pair : expectedValues) {
+        auto val = tree.Get(pair.first);
+        if (!val || val.value() != pair.second) {
+            std::cerr << "Final state verification failed!" << std::endl;
+            exit(1);
+        }
+    }
+}
+
+// Test function to verify that the radix tree behaves correctly with concurrent transactions
+void testConcurrentTransactionsFuzz() {
+    Tree<std::string, int> tree;
+    std::vector<std::string> keys;
+    std::vector<int> values;
+    
+    // Generate initial data
+    for (int i = 0; i < 1000; ++i) {
+        keys.push_back(generateReadableString(5));
+        values.push_back(i);
+    }
+    
+    // Insert initial data
+    for (size_t j = 0; j < keys.size(); ++j) {
+        auto [newTree, oldVal, didUpdate] = tree.insert(keys[j], values[j]);
+        tree = newTree;
+    }
+    
+    // Create two transactions and modify them independently
+    Tree<std::string, int> tree1 = tree;
+    Tree<std::string, int> tree2 = tree;
+    
+    // Modify first tree
+    for (size_t j = 0; j < keys.size(); j += 2) {
+        auto [newTree, oldVal, didUpdate] = tree1.insert(keys[j], values[j] * 2);
+        tree1 = newTree;
+    }
+    
+    // Modify second tree
+    for (size_t j = 1; j < keys.size(); j += 2) {
+        auto [newTree, oldVal, didUpdate] = tree2.insert(keys[j], values[j] * 3);
+        tree2 = newTree;
+    }
+    
+    // Commit first tree's changes
+    tree = tree1;
+    
+    // Verify first tree's changes
+    for (size_t j = 0; j < keys.size(); j += 2) {
+        auto val = tree.Get(keys[j]);
+        if (!val || val.value() != values[j] * 2) {
+            std::cerr << "First transaction verification failed!" << std::endl;
+            exit(1);
+        }
+    }
+    
+    // Commit second tree's changes
+    tree = tree2;
+    
+    // Verify both trees' changes
+    for (size_t j = 0; j < keys.size(); ++j) {
+        auto val = tree.Get(keys[j]);
+        int expectedVal = (j % 2 == 0) ? values[j] * 2 : values[j] * 3;
+        if (!val || val.value() != expectedVal) {
+            std::cerr << "Final state verification failed!" << std::endl;
+            exit(1);
+        }
+    }
+}
+
+// Main function to run all fuzzy tests
+void runFuzzyTests() {
+    std::cout << "Running fuzzy tests..." << std::endl;
+    
+    testIterateFuzz();
+    std::cout << "Iteration test passed" << std::endl;
+    
+    testRandomOperationsFuzz();
+    std::cout << "Random operations test passed" << std::endl;
+    
+    testConcurrentTransactionsFuzz();
+    std::cout << "Concurrent transactions test passed" << std::endl;
+    
+    std::cout << "All fuzzy tests passed!" << std::endl;
+} 

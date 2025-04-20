@@ -199,6 +199,7 @@ private:
     void pushEdges(std::shared_ptr<Node<K, T>> n) {
         if (!n || n->edges.empty()) return;
         stack.emplace_back(n->edges);
+        std::reverse(stack.back().begin(), stack.back().end());
     }
 
 public:
