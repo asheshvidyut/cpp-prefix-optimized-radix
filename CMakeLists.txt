@@ -20,7 +20,6 @@ set(SOURCES
 set(HEADERS
     iradix/tree.hpp
     iradix/node.hpp
-    iradix/iterator.hpp
 )
 
 # Build the executable

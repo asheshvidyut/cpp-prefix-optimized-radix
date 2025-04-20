@@ -143,12 +143,20 @@ int main() {
     std::cout << "\nVerifying all inserted words:" << std::endl;
     int totalWords = 0;
     int foundWords = 0;
-    
+
+    int counter = 1;
     for (const auto& word : words) {
         totalWords++;
         auto val = wordTree.Get(word);
         if (val) {
             foundWords++;
+            if (val != counter) {
+                std::cout << "NOTOK";
+                std::cout << "ERROR: Value mismatch for word '" << word << "'!" << *val << " " << counter << std::endl;
+            } else {
+                std::cout << "OK" << std::endl;
+            }
+            counter++;
             std::cout << word << ": " << *val << std::endl;
         } else {
             std::cout << "ERROR: Word '" << word << "' not found!" << std::endl;
@@ -163,7 +171,7 @@ int main() {
     std::cout << "\nTesting reverse iteration from 'mango':" << std::endl;
     auto wordRit = ReverseIterator<std::string, int>(wordTree.getRoot());
     wordRit.seekReverseLowerBound("mango");
-    
+
     while (true) {
         auto result = wordRit.previous();
         if (!result.found) break;
