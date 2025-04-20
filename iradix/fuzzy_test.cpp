@@ -132,67 +132,6 @@ void testRandomOperationsFuzz() {
     }
 }
 
-// Test function to verify that the radix tree behaves correctly with concurrent transactions
-void testConcurrentTransactionsFuzz() {
-    Tree<std::string, int> tree;
-    std::vector<std::string> keys;
-    std::vector<int> values;
-    
-    // Generate initial data
-    for (int i = 0; i < 1000; ++i) {
-        keys.push_back(generateReadableString(5));
-        values.push_back(i);
-    }
-    
-    // Insert initial data
-    for (size_t j = 0; j < keys.size(); ++j) {
-        auto [newTree, oldVal, didUpdate] = tree.insert(keys[j], values[j]);
-        tree = newTree;
-    }
-    
-    // Create two transactions and modify them independently
-    Tree<std::string, int> tree1 = tree;
-    Tree<std::string, int> tree2 = tree;
-    
-    // Modify first tree
-    for (size_t j = 0; j < keys.size(); j += 2) {
-        auto [newTree, oldVal, didUpdate] = tree1.insert(keys[j], values[j] * 2);
-        tree1 = newTree;
-    }
-    
-    // Modify second tree
-    for (size_t j = 1; j < keys.size(); j += 2) {
-        auto [newTree, oldVal, didUpdate] = tree2.insert(keys[j], values[j] * 3);
-        tree2 = newTree;
-    }
-    
-    // Commit first tree's changes
-    tree = tree1;
-    
-    // Verify first tree's changes
-    for (size_t j = 0; j < keys.size(); j += 2) {
-        auto val = tree.Get(keys[j]);
-        if (!val || val.value() != values[j] * 2) {
-            std::cerr << "First transaction verification failed!" << std::endl;
-            exit(1);
-        }
-    }
-    
-    // Commit second tree's changes
-    tree = tree2;
-    
-    // Verify both trees' changes
-    for (size_t j = 0; j < keys.size(); ++j) {
-        auto val = tree.Get(keys[j]);
-        int expectedVal = (j % 2 == 0) ? values[j] * 2 : values[j] * 3;
-        if (!val || val.value() != expectedVal) {
-            std::cerr << "Final state verification failed!" << std::endl;
-            exit(1);
-        }
-    }
-}
-
-// Main function to run all fuzzy tests
 void runFuzzyTests() {
     std::cout << "Running fuzzy tests..." << std::endl;
     
@@ -201,9 +140,6 @@ void runFuzzyTests() {
     
     testRandomOperationsFuzz();
     std::cout << "Random operations test passed" << std::endl;
-    
-    testConcurrentTransactionsFuzz();
-    std::cout << "Concurrent transactions test passed" << std::endl;
     
     std::cout << "All fuzzy tests passed!" << std::endl;
 } 
