@@ -49,6 +49,7 @@ public:
     K prefix;
     std::vector<Edge<K, T>> edges;
     std::shared_ptr<std::condition_variable> mutateCh;
+    int leaves_in_subtree;
 
     Node();
 
@@ -76,11 +77,14 @@ public:
     // Updates the node's minLeaf and maxLeaf fields
     void updateMinMaxLeaves();
 
+    // Computes leaf links and updates leaves_in_subtree count
+    void computeLinks();
+
     // Checks if the node is a leaf
     bool isLeaf() const;
 
     // Gets a value from the node given a key
-    std::optional<T> Get(const K& search) const;
+    bool Get(const K& search, T& result) const;
 };
 
 // Result structure for LongestPrefix

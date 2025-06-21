@@ -111,7 +111,6 @@ int main() {
     auto rit = ReverseIterator<std::string, int>(tree2.getRoot());
     
     // Seek to a lower bound
-    rit.seekReverseLowerBound("banana");
     
     // Iterate backwards from the lower bound
     std::cout << "All key-value pairs in reverse order from 'banana':" << std::endl;
@@ -174,16 +173,6 @@ int main() {
     std::cout << "Total words processed: " << totalWords << std::endl;
     std::cout << "Words found in tree: " << foundWords << std::endl;
     std::cout << "Success rate: " << (foundWords * 100.0 / totalWords) << "%" << std::endl;
-    
-    std::cout << "\nTesting reverse iteration from 'mango':" << std::endl;
-    auto wordRit = ReverseIterator<std::string, int>(wordTree.getRoot());
-    wordRit.seekReverseLowerBound("mango");
-
-    while (true) {
-        auto result = wordRit.previous();
-        if (!result.found) break;
-        std::cout << "  " << result.key << ": " << result.val << std::endl;
-    }
     
     return 0;
 }

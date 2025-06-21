@@ -159,24 +159,76 @@ std::shared_ptr<LeafNode<K, T>> Node<K, T>::maximumLeaf(bool* found) const {
 
 template<typename K, typename T>
 void Node<K, T>::updateMinMaxLeaves() {
-    if (leaf) {
+    leaves_in_subtree = 0;
+    minLeaf = nullptr;
+    maxLeaf = nullptr;
+    
+    if (leaf != nullptr) {
         minLeaf = leaf;
         maxLeaf = leaf;
-        return;
+        leaves_in_subtree = 1;
+    } else if (!edges.empty()) {
+        // Find the first non-null minLeaf from children
+        for (const auto& edge : edges) {
+            if (edge.node->minLeaf != nullptr) {
+                minLeaf = edge.node->minLeaf;
+                break;
+            }
+        }
+        
+        // Find the last non-null maxLeaf from children
+        for (auto it = edges.rbegin(); it != edges.rend(); ++it) {
+            if (it->node->maxLeaf != nullptr) {
+                maxLeaf = it->node->maxLeaf;
+                break;
+            }
+        }
+    }
+}
+
+template<typename K, typename T>
+void Node<K, T>::computeLinks() {
+    // First, ensure all child nodes have their links computed
+    for (auto& edge : edges) {
+        edge.node->computeLinks();
     }
     
-    if (edges.empty()) {
-        minLeaf = nullptr;
-        maxLeaf = nullptr;
-        return;
+    updateMinMaxLeaves();
+    leaves_in_subtree = 0;
+    
+    if (leaf != nullptr) {
+        leaves_in_subtree++;
     }
     
-    bool found;
-    minLeaf = edges[0].node->minimumLeaf(&found);
-    if (!found) minLeaf = nullptr;
+    if (!edges.empty()) {
+        // Link the current node's leaf to the first child's minLeaf if they're different
+        if (minLeaf != nullptr && minLeaf != edges[0].node->minLeaf) {
+            minLeaf->nextLeaf = edges[0].node->minLeaf;
+            if (edges[0].node->minLeaf != nullptr) {
+                edges[0].node->minLeaf->prevLeaf = minLeaf;
+            }
+        }
+    }
     
-    maxLeaf = edges.back().node->maximumLeaf(&found);
-    if (!found) maxLeaf = nullptr;
+    // Link consecutive child nodes and count leaves
+    for (size_t i = 0; i < edges.size(); i++) {
+        leaves_in_subtree += edges[i].node->leaves_in_subtree;
+        
+        auto maxLFirst = edges[i].node->maxLeaf;
+        std::shared_ptr<LeafNode<K, T>> minLSecond = nullptr;
+        
+        if (i + 1 < edges.size()) {
+            minLSecond = edges[i + 1].node->minLeaf;
+        }
+        
+        if (maxLFirst != nullptr) {
+            maxLFirst->nextLeaf = minLSecond;
+        }
+        
+        if (minLSecond != nullptr) {
+            minLSecond->prevLeaf = maxLFirst;
+        }
+    }
 }
 
 template<typename K, typename T>
@@ -185,21 +237,23 @@ bool Node<K, T>::isLeaf() const {
 }
 
 template<typename K, typename T>
-std::optional<T> Node<K, T>::Get(const K& search) const {
+bool Node<K, T>::Get(const K& search, T& result) const {
     if (search.empty()) {
         if (leaf) {
-            return leaf->val;
+            result = leaf->val;
+            return true;
         }
-        return std::nullopt;
+        return false;
     }
 
     for (const auto& edge : edges) {
         if (hasPrefix(search, edge.node->prefix)) {
             K newSearch(search.begin() + edge.node->prefix.size(), search.end());
-            return edge.node->Get(newSearch);
+            return edge.node->Get(newSearch, result);
         }
     }
-    return std::nullopt;
+    
+    return false;
 }
 
 // Explicit template instantiations

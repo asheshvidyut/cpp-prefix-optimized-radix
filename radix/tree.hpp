@@ -89,6 +89,7 @@ public:
 
                 // Create a new leaf
                 n->leaf = std::make_shared<LeafNode<K, T>>(k, v);
+                n->computeLinks();
                 if (!didUpdate) {
                     size++;
                 }
@@ -105,11 +106,13 @@ public:
                 newNode->mutateCh = std::make_shared<std::condition_variable>();
                 newNode->leaf = std::make_shared<LeafNode<K, T>>(k, v);
                 newNode->prefix = search;
+                newNode->computeLinks();
 
                 Edge<K, T> e;
                 e.label = search[0];
                 e.node = newNode;
                 n->addEdge(e);
+                n->computeLinks();
 
                 size++;
                 return {n, std::nullopt, false};
@@ -125,6 +128,7 @@ public:
                     Edge<K, T> e = n->edges[idx];
                     e.node = newChild;
                     n->replaceEdge(e);
+                    n->computeLinks();
                 }
                 return {n, oldVal, didUpdate};
             }
@@ -149,17 +153,20 @@ public:
             K remainingSearch(search.begin() + commonPrefix, search.end());
             if (remainingSearch.empty()) {
                 splitNode->leaf = leaf;
+                splitNode->computeLinks();
             } else {
                 // Create a new edge for the node
                 auto newNode = std::make_shared<Node<K, T>>();
                 newNode->mutateCh = std::make_shared<std::condition_variable>();
                 newNode->leaf = leaf;
                 newNode->prefix = remainingSearch;
+                newNode->computeLinks();
 
                 Edge<K, T> e2;
                 e2.label = remainingSearch[0];
                 e2.node = newNode;
                 splitNode->addEdge(e2);
+                splitNode->computeLinks();
             }
 
             // Replace the original edge
@@ -167,6 +174,7 @@ public:
             e.label = search[0];
             e.node = splitNode;
             n->replaceEdge(e);
+            n->computeLinks();
 
             size++;
             return {n, std::nullopt, false};
