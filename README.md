@@ -124,6 +124,16 @@ BM_RadixTreeRandomAccess         428159 ns       428112 ns         1365 bytes_pe
 BM_BTreeMapRandomAccess          166930 ns       166912 ns         4056 bytes_per_second=137.127Mi/s items_per_second=5.99116M/s
 ```
 
+### Key Performance Insights
+
+- **Iteration**: Radix tree is ~300x faster than btree_map due to leaf-based iteration
+- **Insertion**: BTree map is faster due to simpler node structure
+- **Lookup**: BTree map is slightly faster for random access
+- **Memory**: Radix tree uses prefix compression for better memory efficiency
+
+
+### Benchmark UUID
+
 ```bash
 Generated 100000 UUIDs
 Radix tree size: 99998
@@ -155,19 +165,6 @@ BM_BTreeMapUUIDLookup          18586938 ns     18584865 ns           37 bytes_pe
 BM_RadixTreeUUIDRandomAccess     539809 ns       539733 ns         1283 bytes_per_second=42.4065Mi/s items_per_second=1.85277M/s
 BM_BTreeMapUUIDRandomAccess      262353 ns       262317 ns         2827 bytes_per_second=87.2538Mi/s items_per_second=3.81218M/s
 ```
-
-### Key Performance Insights
-
-- **Iteration**: Radix tree is ~300x faster than btree_map due to leaf-based iteration
-- **Insertion**: BTree map is faster due to simpler node structure
-- **Lookup**: BTree map is slightly faster for random access
-- **Memory**: Radix tree uses prefix compression for better memory efficiency
-
-### Performance Tips
-
-1. **Run in release mode**: Always use `-O3` optimization
-2. **Multiple runs**: Use `--benchmark_repetitions=3` for reliable results
-3. **Performance counters**: Enable hardware counters for detailed analysis
 
 ## Dependencies
 
