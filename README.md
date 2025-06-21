@@ -29,11 +29,6 @@ sudo apt-get install libbenchmark-dev libabsl-dev
 make all
 ```
 
-### Run Tests
-```bash
-./fuzzy-test
-```
-
 ### Run Benchmarks
 ```bash
 make benchmark

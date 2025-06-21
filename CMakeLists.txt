@@ -14,8 +14,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 # Add source files
 set(SOURCES
     main.cpp
-    fuzzy_test_main.cpp
-    radix/node.cpp
+        radix/node.cpp
     radix/tree.cpp
     radix/iterator.cpp
     benchmark.cpp
