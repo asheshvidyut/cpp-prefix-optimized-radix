@@ -45,10 +45,8 @@ cpp-prefix-optimized-radix/
 │   ├── node.hpp      # Node structure and operations
 │   ├── node.cpp      # Node implementation
 │   ├── iterator.cpp  # Leaf-based iterator
-│   └── fuzzy_test.cpp # Fuzzy testing
 ├── main.cpp          # Example usage
 ├── benchmark.cpp     # Performance benchmarks
-├── fuzzy_test_main.cpp # Fuzzy test runner
 └── words.txt         # Test data
 ```
 
