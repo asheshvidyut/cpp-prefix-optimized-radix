@@ -113,7 +113,7 @@ int main() {
     // Seek to a lower bound
     
     // Iterate backwards from the lower bound
-    std::cout << "All key-value pairs in reverse order from 'banana':" << std::endl;
+    std::cout << "All key-value pairs in reverse order':" << std::endl;
     while (true) {
         auto result = rit.previous();
         if (!result.found) break;
