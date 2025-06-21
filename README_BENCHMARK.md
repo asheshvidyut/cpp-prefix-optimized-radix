@@ -167,6 +167,7 @@ Following the [Abseil guide](https://abseil.io/fast/75), this benchmark implemen
 
 ## Benchmarking Results
 
+```bash
 Loaded 235886 words
 Radix tree size: 235886
 BTree map size: 235886
@@ -196,3 +197,4 @@ BM_RadixTreeRandomAccess         415951 ns       415952 ns         1677 bytes_pe
 BM_BTreeMapRandomAccess          177730 ns       177730 ns         3735 bytes_per_second=128.78Mi/s items_per_second=5.6265M/s
 BM_RadixTreeSequentialAccess   34953304 ns     34953300 ns           20 bytes_per_second=154.463Mi/s items_per_second=6.7486M/s
 BM_BTreeMapSequentialAccess    20590301 ns     20590324 ns           34 bytes_per_second=262.211Mi/s items_per_second=11.4562M/s
+```
