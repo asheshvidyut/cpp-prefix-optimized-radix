@@ -19,11 +19,6 @@ A C++ implementation of a prefix-optimized radix tree with leaf-based iteration,
 brew install google-benchmark abseil
 ```
 
-#### Ubuntu/Debian:
-```bash
-sudo apt-get install libbenchmark-dev libabsl-dev
-```
-
 ### Build
 ```bash
 make all
