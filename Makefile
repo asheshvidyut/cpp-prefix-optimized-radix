@@ -9,9 +9,10 @@ LIBS = -L/opt/homebrew/lib -lbenchmark -labsl_strings -labsl_strings_internal -l
 MAIN_SOURCES = main.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 FUZZY_SOURCES = fuzzy_test_main.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 BENCHMARK_SOURCES = benchmark.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
+BENCHMARK_UUID_SOURCES = benchmark_uuid.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 
 # Targets
-all: radix-cpp benchmark
+all: radix-cpp benchmark benchmark-uuid
 
 radix-cpp: $(MAIN_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
@@ -19,7 +20,10 @@ radix-cpp: $(MAIN_SOURCES)
 benchmark: $(BENCHMARK_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
+benchmark-uuid: $(BENCHMARK_UUID_SOURCES)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
+
 clean:
-	rm -f radix-cpp fuzzy-test benchmark
+	rm -f radix-cpp fuzzy-test benchmark benchmark-uuid
 
 .PHONY: all clean
