@@ -11,15 +11,15 @@ FUZZY_SOURCES = fuzzy_test_main.cpp radix/node.cpp radix/tree.cpp radix/iterator
 BENCHMARK_SOURCES = benchmark.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 
 # Targets
-all: iradix-cpp benchmark
+all: radix-cpp benchmark
 
-iradix-cpp: $(MAIN_SOURCES)
+radix-cpp: $(MAIN_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
 
 benchmark: $(BENCHMARK_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
 
 clean:
-	rm -f iradix-cpp fuzzy-test benchmark
+	rm -f radix-cpp fuzzy-test benchmark
 
 .PHONY: all clean
