@@ -2,7 +2,7 @@
 // Created by Ashesh Vidyut on 22/03/25.
 //
 
-#include "iradix/tree.hpp"
+#include "radix/tree.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -23,21 +23,25 @@ int main() {
     std::vector<uint8_t> key3 = {'w', 'o', 'r', 'l', 'd'};
     
     auto [tree1_1, oldVal1, didUpdate1] = tree1.insert(key1, "greeting");
-    auto [tree1_2, oldVal2, didUpdate2] = tree1_1.insert(key2, "assistance");
-    auto [tree1_3, oldVal3, didUpdate3] = tree1_2.insert(key3, "planet");
+    tree1 = tree1_1;
+    auto [tree1_2, oldVal2, didUpdate2] = tree1.insert(key2, "assistance");
+    tree1 = tree1_2;
+    auto [tree1_3, oldVal3, didUpdate3] = tree1.insert(key3, "planet");
+    tree1 = tree1_3;
     
     // Look up values
-    auto val1 = tree1_3.Get(key1);
-    auto val2 = tree1_3.Get(key2);
-    auto val3 = tree1_3.Get(key3);
+    auto val1 = tree1.Get(key1);
+    auto val2 = tree1.Get(key2);
+    auto val3 = tree1.Get(key3);
     
     std::cout << "Value for 'hello': " << (val1 ? *val1 : "not found") << std::endl;
     std::cout << "Value for 'help': " << (val2 ? *val2 : "not found") << std::endl;
     std::cout << "Value for 'world': " << (val3 ? *val3 : "not found") << std::endl;
     
     // Delete a key
-    auto [tree1_4, oldVal4, found4] = tree1_3.del(key2);
-    auto val2_after_delete = tree1_4.Get(key2);
+    auto [tree1_4, oldVal4, found4] = tree1.del(key2);
+    tree1 = tree1_4;
+    auto val2_after_delete = tree1.Get(key2);
     std::cout << "Value for 'help' after delete: " << (val2_after_delete ? *val2_after_delete : "not found") << std::endl;
     
     // Example 2: Using std::string as key type and int as value type
@@ -48,13 +52,16 @@ int main() {
     
     // Insert some key-value pairs
     auto [tree2_1, oldVal5, didUpdate5] = tree2.insert("apple", 1);
-    auto [tree2_2, oldVal6, didUpdate6] = tree2_1.insert("banana", 2);
-    auto [tree2_3, oldVal7, didUpdate7] = tree2_2.insert("cherry", 3);
+    tree2 = tree2_1;
+    auto [tree2_2, oldVal6, didUpdate6] = tree2.insert("banana", 2);
+    tree2 = tree2_2;
+    auto [tree2_3, oldVal7, didUpdate7] = tree2.insert("cherry", 3);
+    tree2 = tree2_3;
     
     // Look up values
-    auto val4 = tree2_3.Get("apple");
-    auto val5 = tree2_3.Get("banana");
-    auto val6 = tree2_3.Get("cherry");
+    auto val4 = tree2.Get("apple");
+    auto val5 = tree2.Get("banana");
+    auto val6 = tree2.Get("cherry");
     
     std::cout << "Value for 'apple': " << (val4 ? std::to_string(*val4) : "not found") << std::endl;
     std::cout << "Value for 'banana': " << (val5 ? std::to_string(*val5) : "not found") << std::endl;
@@ -64,7 +71,7 @@ int main() {
     std::cout << "\nExample 3: Using the iterator" << std::endl;
     
     // Create an iterator
-    auto it = tree2_3.iterator();
+    auto it = tree2.iterator();
     
     // Iterate over all key-value pairs
     std::cout << "All key-value pairs:" << std::endl;
@@ -79,11 +86,13 @@ int main() {
     std::cout << "\nExample 4: Using prefix search" << std::endl;
     
     // Insert more keys with common prefix
-    auto [tree2_4, oldVal8, didUpdate8] = tree2_3.insert("apricot", 4);
-    auto [tree2_5, oldVal9, didUpdate9] = tree2_4.insert("apartment", 5);
+    auto [tree2_4, oldVal8, didUpdate8] = tree2.insert("apricot", 4);
+    tree2 = tree2_4;
+    auto [tree2_5, oldVal9, didUpdate9] = tree2.insert("apartment", 5);
+    tree2 = tree2_5;
     
     // Create an iterator and seek to a prefix
-    auto it2 = tree2_5.iterator();
+    auto it2 = tree2.iterator();
     it2.seekPrefix("ap");
     
     // Iterate over all key-value pairs with the prefix
@@ -99,7 +108,7 @@ int main() {
     std::cout << "\nExample 5: Using reverse iterator" << std::endl;
     
     // Create a reverse iterator
-    auto rit = ReverseIterator<std::string, int>(tree2_5.getRoot());
+    auto rit = ReverseIterator<std::string, int>(tree2.getRoot());
     
     // Seek to a lower bound
     rit.seekReverseLowerBound("banana");

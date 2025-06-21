@@ -2,7 +2,7 @@
 // Created by Ashesh Vidyut on 22/03/25.
 //
 
-#include "iradix/fuzzy_test.cpp"
+#include "radix/fuzzy_test.cpp"
 #include <iostream>
 #include <chrono>
 

@@ -10,15 +10,15 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 # Add source files
 set(SOURCES
-    iradix/tree.cpp
-    iradix/node.cpp
-    iradix/iterator.cpp
+    radix/tree.cpp
+    radix/node.cpp
+    radix/iterator.cpp
 )
 
 # Add header files
 set(HEADERS
-    iradix/tree.hpp
-    iradix/node.hpp
+    radix/tree.hpp
+    radix/node.hpp
 )
 
 # Build the main executable

@@ -1,9 +1,9 @@
-# Simple Makefile for cpp-immutable-radix project
+# Simple Makefile for cpp-prefix-optimized-radix project
 
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic
 TARGET = x
-SOURCES = main.cpp iradix/node.cpp iradix/tree.cpp iradix/iterator.cpp
+SOURCES = main.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 
 # Default target
 all: main
