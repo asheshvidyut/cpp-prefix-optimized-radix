@@ -372,10 +372,7 @@ public:
         }
 
         Tree<K, T> commitOnly() {
-            Tree<K, T> newTree;
-            newTree.root = root;
-            newTree.size = size;
-            return newTree;
+            return tree;
         }
     };
 
@@ -386,22 +383,25 @@ public:
     std::tuple<Tree<K, T>, std::optional<T>, bool> insert(const K& k, const T& v) {
         auto txn = this->txn();
         auto [newRoot, oldVal, didUpdate] = txn.insert(root, k, k, v);
-        auto newTree = txn.commitOnly();
-        return {newTree, oldVal, didUpdate};
+        root = newRoot;
+        size = txn.size;
+        return {*this, oldVal, didUpdate};
     }
 
     std::tuple<Tree<K, T>, std::optional<T>, bool> del(const K& k) {
         auto txn = this->txn();
         auto result = txn.del(nullptr, root, k);
-        auto newTree = txn.commitOnly();
-        return {newTree, result.leaf ? std::optional<T>(result.leaf->val) : std::nullopt, result.leaf != nullptr};
+        root = result.node;
+        size = txn.size;
+        return {*this, result.leaf ? std::optional<T>(result.leaf->val) : std::nullopt, result.leaf != nullptr};
     }
 
     std::tuple<Tree<K, T>, bool, int> deletePrefix(const K& k) {
         auto txn = this->txn();
         auto result = txn.deletePrefix(root, k);
-        auto newTree = txn.commitOnly();
-        return {newTree, result.node != nullptr, result.numDeletions};
+        root = result.node;
+        size = txn.size;
+        return {*this, result.node != nullptr, result.numDeletions};
     }
 
     std::optional<T> Get(const K& search) const {
