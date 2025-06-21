@@ -271,6 +271,13 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/iradix-cpp.dir/build.make CMakeFiles/iradix-cpp.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+#=============================================================================
+# Custom target for compiling main.cpp
+main: main.cpp iradix/node.cpp iradix/tree.cpp iradix/iterator.cpp
+	g++ -std=c++17 main.cpp iradix/node.cpp iradix/tree.cpp iradix/iterator.cpp -o x
+
+.PHONY : main
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
