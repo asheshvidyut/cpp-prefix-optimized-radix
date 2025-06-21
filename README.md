@@ -61,6 +61,7 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
 #### Run all benchmarks:
 ```bash
 ./benchmark
+./benchmark-uuid
 ```
 
 #### Run specific benchmarks:
