@@ -11,6 +11,7 @@
 #include <vector>
 #include <functional>
 #include <optional>
+#include <tuple>
 
 template<typename K>
 K concat(const K& a, const K& b);  // Implementation in node.hpp
@@ -20,6 +21,20 @@ class Node;
 
 template<typename K, typename T>
 class LeafNode;
+
+// Result structure for delete operations
+template<typename K, typename T>
+struct DeleteResult {
+    std::shared_ptr<Node<K, T>> node;
+    std::shared_ptr<LeafNode<K, T>> leaf;
+};
+
+// Result structure for delete prefix operations
+template<typename K, typename T>
+struct DeletePrefixResult {
+    std::shared_ptr<Node<K, T>> node;
+    int numDeletions;
+};
 
 // Tree class
 template<typename K, typename T>
@@ -157,13 +172,8 @@ public:
             return {n, std::nullopt, false};
         }
 
-        struct DeleteResult {
-            std::shared_ptr<Node<K, T>> node;
-            std::shared_ptr<LeafNode<K, T>> leaf;
-        };
-
-        DeleteResult del(std::shared_ptr<Node<K, T>> parent, std::shared_ptr<Node<K, T>> n, const K& search) {
-            DeleteResult result;
+        DeleteResult<K, T> del(std::shared_ptr<Node<K, T>> parent, std::shared_ptr<Node<K, T>> n, const K& search) {
+            DeleteResult<K, T> result;
             result.node = nullptr;
             result.leaf = nullptr;
 
@@ -249,13 +259,8 @@ public:
             return result;
         }
 
-        struct DeletePrefixResult {
-            std::shared_ptr<Node<K, T>> node;
-            int numDeletions;
-        };
-
-        DeletePrefixResult deletePrefix(std::shared_ptr<Node<K, T>> n, const K& search) {
-            DeletePrefixResult result;
+        DeletePrefixResult<K, T> deletePrefix(std::shared_ptr<Node<K, T>> n, const K& search) {
+            DeletePrefixResult<K, T> result;
             result.node = nullptr;
             result.numDeletions = 0;
 
