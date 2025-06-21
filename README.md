@@ -113,17 +113,30 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
 Loaded 235886 words
 Radix tree size: 235886
 BTree map size: 235886
-
-BM_RadixTreeInsert            431447812 ns    431297500 ns            2
-BM_BTreeMapInsert              15949482 ns     15875477 ns           44
-BM_RadixTreeLookup             34521169 ns     34521150 ns           20
-BM_BTreeMapLookup              19849081 ns     19849056 ns           36
-BM_RadixTreeIterate                1085 ns         1085 ns       612327
-BM_BTreeMapIterate               317448 ns       317448 ns         2175
-BM_RadixTreeRandomAccess         406194 ns       406194 ns         1705
-BM_BTreeMapRandomAccess          171449 ns       171295 ns         3904
-BM_RadixTreeSequentialAccess   35048865 ns     35048850 ns           20
-BM_BTreeMapSequentialAccess    19788282 ns     19788029 ns           35
+Unable to determine clock rate from sysctl: hw.cpufrequency: No such file or directory
+This does not affect benchmark measurements, only the metadata output.
+***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
+2025-06-21T09:20:01+05:30
+Running ./benchmark
+Run on (14 X 24 MHz CPU s)
+CPU Caches:
+  L1 Data 64 KiB
+  L1 Instruction 128 KiB
+  L2 Unified 4096 KiB (x14)
+Load Average: 1.89, 2.25, 2.81
+---------------------------------------------------------------------------------------
+Benchmark                             Time             CPU   Iterations UserCounters...
+---------------------------------------------------------------------------------------
+BM_RadixTreeInsert            420537125 ns    420417000 ns            2 bytes_per_second=25.684Mi/s items_per_second=561.076k/s
+BM_BTreeMapInsert              14744467 ns     14743152 ns           46 bytes_per_second=732.408Mi/s items_per_second=15.9997M/s
+BM_RadixTreeLookup             32559549 ns     32555227 ns           22 bytes_per_second=165.841Mi/s items_per_second=7.24572M/s
+BM_BTreeMapLookup              19712880 ns     19711086 ns           35 bytes_per_second=273.907Mi/s items_per_second=11.9672M/s
+BM_RadixTreeIterate                1046 ns         1046 ns       681292 bytes_per_second=9.84546Ti/s items_per_second=225.525G/s
+BM_BTreeMapIterate               343588 ns       343541 ns         2156 bytes_per_second=30.6948Gi/s items_per_second=686.632M/s
+BM_RadixTreeRandomAccess         428159 ns       428112 ns         1365 bytes_per_second=53.4631Mi/s items_per_second=2.33584M/s
+BM_BTreeMapRandomAccess          166930 ns       166912 ns         4056 bytes_per_second=137.127Mi/s items_per_second=5.99116M/s
+BM_RadixTreeSequentialAccess   31788225 ns     31785273 ns           22 bytes_per_second=169.859Mi/s items_per_second=7.42124M/s
+BM_BTreeMapSequentialAccess    19292938 ns     19290778 ns           36 bytes_per_second=279.875Mi/s items_per_second=12.2279M/s
 ```
 
 ### Key Performance Insights
