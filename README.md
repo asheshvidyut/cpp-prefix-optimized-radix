@@ -96,11 +96,9 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
    - `BM_RadixTreeIterate`: Iterate through all words in radix tree
    - `BM_BTreeMapIterate`: Iterate through all words in btree_map
 
-4. **Cache Performance**
+4. **Random Access Performance**
    - `BM_RadixTreeRandomAccess`: Random access patterns
    - `BM_BTreeMapRandomAccess`: Random access patterns in btree_map
-   - `BM_RadixTreeSequentialAccess`: Sequential access patterns
-   - `BM_BTreeMapSequentialAccess`: Sequential access patterns in btree_map
 
 ### Benchmarking Results
 
@@ -130,8 +128,6 @@ BM_RadixTreeIterate                1046 ns         1046 ns       681292 bytes_pe
 BM_BTreeMapIterate               343588 ns       343541 ns         2156 bytes_per_second=30.6948Gi/s items_per_second=686.632M/s
 BM_RadixTreeRandomAccess         428159 ns       428112 ns         1365 bytes_per_second=53.4631Mi/s items_per_second=2.33584M/s
 BM_BTreeMapRandomAccess          166930 ns       166912 ns         4056 bytes_per_second=137.127Mi/s items_per_second=5.99116M/s
-BM_RadixTreeSequentialAccess   31788225 ns     31785273 ns           22 bytes_per_second=169.859Mi/s items_per_second=7.42124M/s
-BM_BTreeMapSequentialAccess    19292938 ns     19290778 ns           36 bytes_per_second=279.875Mi/s items_per_second=12.2279M/s
 ```
 
 ### Key Performance Insights

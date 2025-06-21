@@ -172,34 +172,6 @@ static void BM_BTreeMapRandomAccess(benchmark::State& state) {
 }
 BENCHMARK(BM_BTreeMapRandomAccess);
 
-// Benchmark: Sequential access patterns (cache-friendly)
-static void BM_RadixTreeSequentialAccess(benchmark::State& state) {
-    for (auto _ : state) {
-        for (const auto& word : words) {
-            auto result = radix_tree.Get(word);
-            benchmark::DoNotOptimize(result);
-        }
-    }
-    
-    state.SetItemsProcessed(state.iterations() * words.size());
-    state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string));
-}
-BENCHMARK(BM_RadixTreeSequentialAccess);
-
-// Benchmark: Sequential access patterns in btree_map
-static void BM_BTreeMapSequentialAccess(benchmark::State& state) {
-    for (auto _ : state) {
-        for (const auto& word : words) {
-            auto it = btree_map.find(word);
-            benchmark::DoNotOptimize(it);
-        }
-    }
-    
-    state.SetItemsProcessed(state.iterations() * words.size());
-    state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string));
-}
-BENCHMARK(BM_BTreeMapSequentialAccess);
-
 int main(int argc, char** argv) {
     // Initialize data before running benchmarks
     InitializeData();
