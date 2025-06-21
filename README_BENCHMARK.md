@@ -174,27 +174,25 @@ BTree map size: 235886
 Unable to determine clock rate from sysctl: hw.cpufrequency: No such file or directory
 This does not affect benchmark measurements, only the metadata output.
 ***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
-2025-06-21T09:00:05+05:30
+2025-06-21T09:10:19+05:30
 Running ./benchmark
 Run on (10 X 24 MHz CPU s)
 CPU Caches:
   L1 Data 64 KiB
   L1 Instruction 128 KiB
   L2 Unified 4096 KiB (x10)
-Load Average: 2.78, 2.24, 2.25
+Load Average: 2.00, 2.30, 2.32
 ---------------------------------------------------------------------------------------
 Benchmark                             Time             CPU   Iterations UserCounters...
 ---------------------------------------------------------------------------------------
-BM_RadixTreeInsert            438361771 ns    438347500 ns            2 bytes_per_second=24.6334Mi/s items_per_second=538.126k/s
-BM_BTreeMapInsert              15827585 ns     15811727 ns           44 bytes_per_second=682.911Mi/s items_per_second=14.9184M/s
-BM_RadixTreeLookup             35092865 ns     35092800 ns           20 bytes_per_second=153.849Mi/s items_per_second=6.72178M/s
-BM_BTreeMapLookup              21560661 ns     20840265 ns           34 bytes_per_second=259.066Mi/s items_per_second=11.3188M/s
-BM_RadixTreeIterate                1097 ns         1097 ns       639801 bytes_per_second=9.38517Ti/s items_per_second=214.981G/s
-BM_BTreeMapIterate               324153 ns       324154 ns         2146 bytes_per_second=32.5306Gi/s items_per_second=727.698M/s
-BM_RadixTreePrefixSearch           6357 ns         6357 ns       109368 bytes_per_second=21.602Mi/s items_per_second=943.804k/s
-BM_BTreeMapLowerBound             76756 ns        76756 ns         9000 bytes_per_second=1.78917Mi/s items_per_second=78.1701k/s
-BM_RadixTreeRandomAccess         415951 ns       415952 ns         1677 bytes_per_second=55.0261Mi/s items_per_second=2.40413M/s
-BM_BTreeMapRandomAccess          177730 ns       177730 ns         3735 bytes_per_second=128.78Mi/s items_per_second=5.6265M/s
-BM_RadixTreeSequentialAccess   34953304 ns     34953300 ns           20 bytes_per_second=154.463Mi/s items_per_second=6.7486M/s
-BM_BTreeMapSequentialAccess    20590301 ns     20590324 ns           34 bytes_per_second=262.211Mi/s items_per_second=11.4562M/s
+BM_RadixTreeInsert            431447812 ns    431297500 ns            2 bytes_per_second=25.0361Mi/s items_per_second=546.922k/s
+BM_BTreeMapInsert              15949482 ns     15875477 ns           44 bytes_per_second=680.169Mi/s items_per_second=14.8585M/s
+BM_RadixTreeLookup             34521169 ns     34521150 ns           20 bytes_per_second=156.397Mi/s items_per_second=6.83309M/s
+BM_BTreeMapLookup              19849081 ns     19849056 ns           36 bytes_per_second=272.003Mi/s items_per_second=11.884M/s
+BM_RadixTreeIterate                1085 ns         1085 ns       612327 bytes_per_second=9.48947Ti/s items_per_second=217.37G/s
+BM_BTreeMapIterate               317448 ns       317448 ns         2175 bytes_per_second=33.2178Gi/s items_per_second=743.07M/s
+BM_RadixTreeRandomAccess         406194 ns       406194 ns         1705 bytes_per_second=56.348Mi/s items_per_second=2.46188M/s
+BM_BTreeMapRandomAccess          171449 ns       171295 ns         3904 bytes_per_second=133.619Mi/s items_per_second=5.83789M/s
+BM_RadixTreeSequentialAccess   35048865 ns     35048850 ns           20 bytes_per_second=154.042Mi/s items_per_second=6.73021M/s
+BM_BTreeMapSequentialAccess    19788282 ns     19788029 ns           35 bytes_per_second=272.842Mi/s items_per_second=11.9206M/s
 ```

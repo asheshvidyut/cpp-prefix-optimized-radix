@@ -134,54 +134,6 @@ static void BM_BTreeMapIterate(benchmark::State& state) {
 }
 BENCHMARK(BM_BTreeMapIterate);
 
-// Benchmark: Prefix search in radix tree
-static void BM_RadixTreePrefixSearch(benchmark::State& state) {
-    std::vector<std::string> prefixes = {"a", "ab", "abc", "test", "hello", "world"};
-    
-    for (auto _ : state) {
-        for (const auto& prefix : prefixes) {
-            auto iterator = radix_tree.iterator();
-            iterator.seekPrefix(prefix);
-            int count = 0;
-            while (true) {
-                auto result = iterator.next();
-                if (!result.found) break;
-                benchmark::DoNotOptimize(result.key);
-                benchmark::DoNotOptimize(result.val);
-                count++;
-            }
-            benchmark::DoNotOptimize(count);
-        }
-    }
-    
-    state.SetItemsProcessed(state.iterations() * prefixes.size());
-    state.SetBytesProcessed(state.iterations() * prefixes.size() * sizeof(std::string));
-}
-BENCHMARK(BM_RadixTreePrefixSearch);
-
-// Benchmark: Lower bound search in btree_map (closest to prefix search)
-static void BM_BTreeMapLowerBound(benchmark::State& state) {
-    std::vector<std::string> prefixes = {"a", "ab", "abc", "test", "hello", "world"};
-    
-    for (auto _ : state) {
-        for (const auto& prefix : prefixes) {
-            auto it = btree_map.lower_bound(prefix);
-            int count = 0;
-            while (it != btree_map.end() && it->first.substr(0, prefix.length()) == prefix) {
-                benchmark::DoNotOptimize(it->first);
-                benchmark::DoNotOptimize(it->second);
-                count++;
-                ++it;
-            }
-            benchmark::DoNotOptimize(count);
-        }
-    }
-    
-    state.SetItemsProcessed(state.iterations() * prefixes.size());
-    state.SetBytesProcessed(state.iterations() * prefixes.size() * sizeof(std::string));
-}
-BENCHMARK(BM_BTreeMapLowerBound);
-
 // Benchmark: Random access patterns (cache performance)
 static void BM_RadixTreeRandomAccess(benchmark::State& state) {
     std::random_device rd;
