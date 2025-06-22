@@ -124,6 +124,31 @@ BM_BTreeMapPrefixSearch     1005711 ns      1005711 ns          693 MemoryPeak=0
 - This demonstrates the efficiency of the radix tree for prefix queries compared to general-purpose ordered maps.
 - For workloads with heavy prefix search requirements, the radix tree offers a significant performance advantage.
 
+## Key Insights from Benchmarks
+
+- **Insertion:**
+  - BTreeMap is significantly faster than Radix Tree for bulk insertions (see BM_BTreeMapInsert vs BM_RadixTreeInsert).
+  - BTreeMap also uses more peak memory during insertion, while Radix Tree is more memory efficient for this phase.
+
+- **Lookup:**
+  - BTreeMap provides much faster point lookups than Radix Tree (BM_BTreeMapLookup vs BM_RadixTreeLookup).
+  - For workloads dominated by exact key lookups, BTreeMap is preferable.
+
+- **Iteration:**
+  - Both data structures are extremely fast for full iteration, but BTreeMap is about 2x faster (BM_BTreeMapIterate vs BM_RadixTreeIterate).
+
+- **Random Access:**
+  - BTreeMap is about 3x faster for random access patterns (BM_BTreeMapRandomAccess vs BM_RadixTreeRandomAccess).
+
+- **Prefix Search:**
+  - Radix Tree is over **10x faster** than BTreeMap for prefix queries (BM_RadixTreeSeekPrefix vs BM_BTreeMapPrefixSearch).
+  - This is the main advantage of the Radix Tree: if your workload involves many prefix or range queries, it will outperform general-purpose ordered maps.
+
+**Summary:**
+- Use **Radix Tree** for workloads with heavy prefix search or range query requirements.
+- Use **BTreeMap** for workloads dominated by insertions, lookups, or random access.
+- Both structures are highly efficient for iteration, but BTreeMap is generally faster for most operations except prefix search.
+
 ## Dependencies
 
 - C++17 compiler
