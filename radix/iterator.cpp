@@ -41,11 +41,9 @@ private:
     std::shared_ptr<Node<K, T>> node;
     LeafNode<K, T>* iterLeafNode;
     K key;
-    bool patternMatch;
-    std::shared_ptr<regex_t> pattern;
 
 public:
-    ReverseIterator(std::shared_ptr<Node<K, T>> n) : node(n), patternMatch(false) {
+    ReverseIterator(std::shared_ptr<Node<K, T>> n) : node(n) {
         if (node) {
             iterLeafNode = node->maxLeaf;
         } else {
@@ -127,12 +125,6 @@ public:
 
         return result;
     }
-
-    // Sets pattern matching for the iterator
-    void setPatternMatch(regex_t* regex) {
-        patternMatch = true;
-        pattern = std::shared_ptr<regex_t>(regex, [](regex_t* p) { /* No-op deleter */ });
-    }
 };
 
 // Iterator class
@@ -144,11 +136,9 @@ private:
     int iterCounter;
     K key;
     bool seekLowerBoundFlag;
-    bool patternMatch;
-    std::shared_ptr<regex_t> pattern;
 
 public:
-    Iterator(std::shared_ptr<Node<K, T>> n) : node(n), patternMatch(false), seekLowerBoundFlag(false) {
+    Iterator(std::shared_ptr<Node<K, T>> n) : node(n), seekLowerBoundFlag(false) {
         if (node) {
             iterLeafNode = node->minLeaf;
             iterCounter = node->leaves_in_subtree;
@@ -156,12 +146,6 @@ public:
             iterLeafNode = nullptr;
             iterCounter = 0;
         }
-    }
-
-    // Sets pattern matching for the iterator
-    void setPatternMatch(regex_t* regex) {
-        patternMatch = true;
-        pattern = std::shared_ptr<regex_t>(regex, [](regex_t* p) { /* No-op deleter */ });
     }
 
     // Seeks the iterator to a given prefix and returns the watch channel
@@ -229,25 +213,14 @@ public:
         IteratorResult<K, T> result;
         result.found = false;
 
-        iterCounter--;
-
-        if (iterCounter < 0) {
-            return result;
-        }
-
-        if (iterLeafNode) {
-            if (patternMatch) {
-                if (regexec(pattern.get(), iterLeafNode->key.c_str(), 0, nullptr, 0) != 0) {
-                    // Skip this leaf and continue to next
-                    iterLeafNode = iterLeafNode->nextLeaf;
-                    return next();
-                }
-            }
+        while (iterCounter > 0 && iterLeafNode) {
+            iterCounter--;
             
             result.key = iterLeafNode->key;
             result.val = iterLeafNode->val;
             result.found = true;
             iterLeafNode = iterLeafNode->nextLeaf;
+            return result;
         }
 
         return result;

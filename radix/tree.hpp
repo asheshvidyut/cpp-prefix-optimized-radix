@@ -12,6 +12,7 @@
 #include <functional>
 #include <optional>
 #include <tuple>
+#include <stack>
 
 template<typename K>
 K concat(const K& a, const K& b);  // Implementation in node.hpp
@@ -21,6 +22,30 @@ class Node;
 
 template<typename K, typename T>
 class LeafNode;
+
+// Simple object pool for reducing allocations
+template<typename T>
+class ObjectPool {
+private:
+    std::stack<std::unique_ptr<T>> pool;
+    std::function<std::unique_ptr<T>()> factory;
+
+public:
+    ObjectPool(std::function<std::unique_ptr<T>()> f) : factory(f) {}
+    
+    std::unique_ptr<T> acquire() {
+        if (pool.empty()) {
+            return factory();
+        }
+        auto obj = std::move(pool.top());
+        pool.pop();
+        return obj;
+    }
+    
+    void release(std::unique_ptr<T> obj) {
+        pool.push(std::move(obj));
+    }
+};
 
 // Result structure for delete operations
 template<typename K, typename T>
@@ -42,6 +67,10 @@ class Tree {
 private:
     std::shared_ptr<Node<K, T>> root;
     int size;
+    
+    // Object pools for reducing allocations
+    static ObjectPool<Node<K, T>> nodePool;
+    static ObjectPool<LeafNode<K, T>> leafPool;
 
     friend class Transaction;
 
@@ -126,50 +155,68 @@ public:
                 return {nullptr, oldVal, didUpdate};
             }
 
-            // Split the node - modify child in place instead of creating new nodes
+            // Optimized split: minimize allocations
+            // Instead of creating a new split node, we can sometimes modify the existing child
+            if (commonPrefix == 0) {
+                // No common prefix, just add as a new edge
+                auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
+                auto newNode = std::make_shared<Node<K, T>>();
+                newNode->leaf = leaf;
+                newNode->minLeaf = leaf.get();
+                newNode->maxLeaf = leaf.get();
+                newNode->prefix = search;
+                newNode->leaves_in_subtree = 1;
+
+                Edge<K, T> e;
+                e.label = search[0];
+                e.node = newNode;
+                n->addEdge(e);
+                n->computeLinks();
+                return {n, std::nullopt, false};
+            }
+
+            // We need to split - create minimal new structure
             auto splitNode = std::make_shared<Node<K, T>>();
             splitNode->prefix = K(search.begin(), search.begin() + commonPrefix);
 
-            // Replace the edge in parent with splitNode
-            Edge<K, T> splitEdge;
-            splitEdge.label = search[0];
-            splitEdge.node = splitNode;
-            n->replaceEdge(splitEdge);
-
-            // Move the existing child under the split node (modify in place)
+            // Move existing child under split node
             Edge<K, T> childEdge;
             childEdge.label = child->prefix[commonPrefix];
             childEdge.node = child;
             splitNode->addEdge(childEdge);
             child->prefix = K(child->prefix.begin() + commonPrefix, child->prefix.end());
 
-            // Create a new leaf node
-            auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
-
-            // If the new key is a subset, add to this node
+            // Handle the new key
             K remainingSearch(search.begin() + commonPrefix, search.end());
             if (remainingSearch.empty()) {
+                // New key ends at split node
+                auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
                 splitNode->leaf = leaf;
                 splitNode->minLeaf = leaf.get();
                 splitNode->maxLeaf = leaf.get();
                 splitNode->leaves_in_subtree++;
-                splitNode->computeLinks();
-                n->computeLinks();
-                return {n, std::nullopt, false};
+            } else {
+                // New key continues
+                auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
+                auto newNode = std::make_shared<Node<K, T>>();
+                newNode->leaf = leaf;
+                newNode->minLeaf = leaf.get();
+                newNode->maxLeaf = leaf.get();
+                newNode->prefix = remainingSearch;
+                newNode->leaves_in_subtree = 1;
+
+                Edge<K, T> newEdge;
+                newEdge.label = remainingSearch[0];
+                newEdge.node = newNode;
+                splitNode->addEdge(newEdge);
             }
 
-            // Create a new edge for the remaining search
-            auto newNode = std::make_shared<Node<K, T>>();
-            newNode->leaf = leaf;
-            newNode->minLeaf = leaf.get();
-            newNode->maxLeaf = leaf.get();
-            newNode->prefix = remainingSearch;
-            newNode->leaves_in_subtree = 1;
-
-            Edge<K, T> newEdge;
-            newEdge.label = remainingSearch[0];
-            newEdge.node = newNode;
-            splitNode->addEdge(newEdge);
+            // Update parent
+            Edge<K, T> splitEdge;
+            splitEdge.label = search[0];
+            splitEdge.node = splitNode;
+            n->replaceEdge(splitEdge);
+            
             splitNode->computeLinks();
             n->computeLinks();
             return {n, std::nullopt, false};
