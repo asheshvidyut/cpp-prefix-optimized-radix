@@ -228,6 +228,58 @@ static void BM_BTreeMapRandomAccess(benchmark::State& state) {
 }
 BENCHMARK(BM_BTreeMapRandomAccess);
 
+// Benchmark: Prefix search using radix tree seekPrefix("s")
+static void BM_RadixTreeSeekPrefix(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
+    for (auto _ : state) {
+        int count = 0;
+        auto iterator = radix_tree.iterator();
+        iterator.seekPrefix("s");
+        
+        while (true) {
+            auto result = iterator.next();
+            if (!result.found) break;
+            
+            if (result.key.find("s") == 0) {
+                benchmark::DoNotOptimize(result.key);
+                benchmark::DoNotOptimize(result.val);
+                count++;
+            }
+        }
+        benchmark::DoNotOptimize(count);
+    }
+    
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
+    state.SetItemsProcessed(state.iterations() * 22759); // Approximate count of words starting with 's'
+    state.SetBytesProcessed(state.iterations() * 22759 * sizeof(std::string) * 2);
+}
+BENCHMARK(BM_RadixTreeSeekPrefix);
+
+// Benchmark: Prefix search using BTree iteration and string matching
+static void BM_BTreeMapPrefixSearch(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
+    for (auto _ : state) {
+        int count = 0;
+        for (const auto& [key, value] : btree_map) {
+            if (key.find("s") == 0) {
+                benchmark::DoNotOptimize(key);
+                benchmark::DoNotOptimize(value);
+                count++;
+            }
+        }
+        benchmark::DoNotOptimize(count);
+    }
+    
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
+    state.SetItemsProcessed(state.iterations() * 22759); // Approximate count of words starting with 's'
+    state.SetBytesProcessed(state.iterations() * 22759 * sizeof(std::string) * 2);
+}
+BENCHMARK(BM_BTreeMapPrefixSearch);
+
 int main(int argc, char** argv) {
     // Initialize data before running benchmarks
     InitializeData(radix_tree);

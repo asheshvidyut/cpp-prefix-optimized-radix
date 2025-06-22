@@ -98,45 +98,25 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
 
 ```bash
 Running ./benchmark
-Run on (14 X 24 MHz CPU s)
+Run on (10 X 24 MHz CPU s)
 CPU Caches:
   L1 Data 64 KiB
   L1 Instruction 128 KiB
-  L2 Unified 4096 KiB (x14)
-Load Average: 2.52, 2.86, 3.25
+  L2 Unified 4096 KiB (x10)
+Load Average: 2.38, 2.61, 2.57
 -----------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations UserCounters...
 -----------------------------------------------------------------------------------
-BM_RadixTreeInsert         68868389 ns     68764778 ns            9 MemoryPeak=16.794G bytes_per_second=157.028Mi/s items_per_second=3.43033M/s
-BM_BTreeMapInsert          14789440 ns     14763250 ns           48 MemoryPeak=1.19118G bytes_per_second=731.411Mi/s items_per_second=15.9779M/s
-BM_RadixTreeLookup         69642708 ns     63624545 ns           11 MemoryPeak=0 bytes_per_second=84.8572Mi/s items_per_second=3.70747M/s
-BM_BTreeMapLookup          20060848 ns     19999513 ns           39 MemoryPeak=0 bytes_per_second=269.957Mi/s items_per_second=11.7946M/s
-BM_RadixTreeIterate         1088449 ns      1085696 ns          481 MemoryPeak=0 bytes_per_second=9.71259Gi/s items_per_second=217.267M/s
-BM_BTreeMapIterate           316798 ns       316545 ns         2168 MemoryPeak=0 bytes_per_second=33.3126Gi/s items_per_second=745.19M/s
-BM_RadixTreeRandomAccess     733874 ns       732446 ns         1171 MemoryPeak=0 bytes_per_second=31.249Mi/s items_per_second=1.36529M/s
-BM_BTreeMapRandomAccess      318198 ns       314154 ns         2282 MemoryPeak=0 bytes_per_second=72.8566Mi/s items_per_second=3.18315M/s```
-```
-
-### Benchmark UUID
-
-```bash
-Running ./benchmark-uuid
-Run on (14 X 24 MHz CPU s)
-CPU Caches:
-  L1 Data 64 KiB
-  L1 Instruction 128 KiB
-  L2 Unified 4096 KiB (x14)
-Load Average: 3.23, 3.09, 3.32
----------------------------------------------------------------------------------------
-Benchmark                             Time             CPU   Iterations UserCounters...
----------------------------------------------------------------------------------------
-BM_RadixTreeUUIDIterate         9732653 ns      9724241 ns           54 bytes_per_second=470.745Mi/s items_per_second=10.2836M/s
-BM_BTreeMapUUIDIterate           313932 ns       313876 ns         2180 bytes_per_second=14.2424Gi/s items_per_second=318.597M/s
-BM_RadixTreeUUIDLookup         38121473 ns     38106353 ns           17 bytes_per_second=60.064Mi/s items_per_second=2.62423M/s
-BM_BTreeMapUUIDLookup          19803780 ns     19774091 ns           33 bytes_per_second=115.748Mi/s items_per_second=5.05712M/s
-BM_RadixTreeUUIDRandomAccess     813450 ns       805547 ns          967 bytes_per_second=28.4132Mi/s items_per_second=1.24139M/s
-BM_BTreeMapUUIDRandomAccess      290895 ns       290831 ns         2269 bytes_per_second=78.6993Mi/s items_per_second=3.43843M/s
-```
+BM_RadixTreeInsert         71248346 ns     71037500 ns           10 MemoryPeak=1.1073G bytes_per_second=152.004Mi/s items_per_second=3.32058M/s
+BM_BTreeMapInsert          17749368 ns     16790405 ns           42 MemoryPeak=2.38236G bytes_per_second=643.106Mi/s items_per_second=14.0489M/s
+BM_RadixTreeLookup         63523439 ns     63523455 ns           11 MemoryPeak=0 bytes_per_second=84.9923Mi/s items_per_second=3.71337M/s
+BM_BTreeMapLookup          17925415 ns     17925410 ns           39 MemoryPeak=0 bytes_per_second=301.193Mi/s items_per_second=13.1593M/s
+BM_RadixTreeIterate          664484 ns       664486 ns         1013 MemoryPeak=0 bytes_per_second=15.8693Gi/s items_per_second=354.99M/s
+BM_BTreeMapIterate           300113 ns       300112 ns         2332 MemoryPeak=0 bytes_per_second=35.1366Gi/s items_per_second=785.992M/s
+BM_RadixTreeRandomAccess     528395 ns       528394 ns         1199 MemoryPeak=0 bytes_per_second=43.3165Mi/s items_per_second=1.89253M/s
+BM_BTreeMapRandomAccess      170838 ns       170838 ns         4055 MemoryPeak=0 bytes_per_second=133.976Mi/s items_per_second=5.85348M/s
+BM_RadixTreeSeekPrefix        92119 ns        92118 ns         7606 MemoryPeak=0 bytes_per_second=11.0447Gi/s items_per_second=247.065M/s
+BM_BTreeMapPrefixSearch     1005711 ns      1005711 ns          693 MemoryPeak=0 bytes_per_second=1.01163Gi/s items_per_second=22.6298M/s```
 
 ## Dependencies
 
