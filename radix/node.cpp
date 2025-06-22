@@ -56,8 +56,7 @@ LeafNode<K, T>::LeafNode(const K& k, const T& v) : key(k), val(v), nextLeaf(null
 
 // Node implementation
 template<typename K, typename T>
-Node<K, T>::Node() : leaf(nullptr), minLeaf(nullptr), maxLeaf(nullptr), 
-                     mutateCh(std::make_shared<std::condition_variable>()) {}
+Node<K, T>::Node() : leaf(nullptr), minLeaf(nullptr), maxLeaf(nullptr), leaves_in_subtree(0) {}
 
 template<typename K, typename T>
 std::shared_ptr<Node<K, T>> Node<K, T>::getEdge(typename K::value_type label, int* out_index) const {
@@ -128,10 +127,10 @@ std::shared_ptr<Node<K, T>> Node<K, T>::getLowerBoundEdge(typename K::value_type
 }
 
 template<typename K, typename T>
-std::shared_ptr<LeafNode<K, T>> Node<K, T>::minimumLeaf(bool* found) const {
+LeafNode<K, T>* Node<K, T>::minimumLeaf(bool* found) const {
     if (leaf) {
         if (found) *found = true;
-        return leaf;
+        return leaf.get();
     }
     
     if (edges.empty()) {
@@ -143,10 +142,10 @@ std::shared_ptr<LeafNode<K, T>> Node<K, T>::minimumLeaf(bool* found) const {
 }
 
 template<typename K, typename T>
-std::shared_ptr<LeafNode<K, T>> Node<K, T>::maximumLeaf(bool* found) const {
+LeafNode<K, T>* Node<K, T>::maximumLeaf(bool* found) const {
     if (leaf) {
         if (found) *found = true;
-        return leaf;
+        return leaf.get();
     }
     
     if (edges.empty()) {
@@ -164,7 +163,7 @@ void Node<K, T>::updateMinMaxLeaves() {
     maxLeaf = nullptr;
     
     if (leaf != nullptr) {
-        minLeaf = leaf;
+        minLeaf = leaf.get();
     } else if (!edges.empty()) {
         minLeaf = edges[0].node->minLeaf;
     }
@@ -174,7 +173,7 @@ void Node<K, T>::updateMinMaxLeaves() {
     }
     
     if (maxLeaf == nullptr && leaf != nullptr) {
-        maxLeaf = leaf;
+        maxLeaf = leaf.get();
     }
 }
 
@@ -199,7 +198,7 @@ void Node<K, T>::computeLinks() {
     for (size_t i = 0; i < edges.size(); i++) {
         leaves_in_subtree += edges[i].node->leaves_in_subtree;
         auto maxLFirst = edges[i].node->maxLeaf;
-        std::shared_ptr<LeafNode<K, T>> minLSecond = nullptr;
+        LeafNode<K, T>* minLSecond = nullptr;
         if (i + 1 < edges.size()) {
             minLSecond = edges[i + 1].node->minLeaf;
         }

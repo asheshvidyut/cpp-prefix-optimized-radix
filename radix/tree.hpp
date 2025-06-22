@@ -12,7 +12,6 @@
 #include <functional>
 #include <optional>
 #include <tuple>
-#include <condition_variable>
 
 template<typename K>
 K concat(const K& a, const K& b);  // Implementation in node.hpp
@@ -47,9 +46,7 @@ private:
     friend class Transaction;
 
 public:
-    Tree() : root(std::make_shared<Node<K, T>>()), size(0) {
-        root->mutateCh = std::make_shared<std::condition_variable>();
-    }
+    Tree() : root(std::make_shared<Node<K, T>>()), size(0) {}
 
     std::shared_ptr<Node<K, T>> getRoot() const {
         return root;
@@ -102,10 +99,9 @@ public:
             if (!child) {
                 auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
                 auto newNode = std::make_shared<Node<K, T>>();
-                newNode->mutateCh = std::make_shared<std::condition_variable>();
                 newNode->leaf = leaf;
-                newNode->minLeaf = leaf;
-                newNode->maxLeaf = leaf;
+                newNode->minLeaf = leaf.get();
+                newNode->maxLeaf = leaf.get();
                 newNode->prefix = search;
                 newNode->leaves_in_subtree = 1;
 
@@ -130,9 +126,8 @@ public:
                 return {nullptr, oldVal, didUpdate};
             }
 
-            // Split the node
+            // Split the node - modify child in place instead of creating new nodes
             auto splitNode = std::make_shared<Node<K, T>>();
-            splitNode->mutateCh = std::make_shared<std::condition_variable>();
             splitNode->prefix = K(search.begin(), search.begin() + commonPrefix);
 
             // Replace the edge in parent with splitNode
@@ -141,7 +136,7 @@ public:
             splitEdge.node = splitNode;
             n->replaceEdge(splitEdge);
 
-            // Restore the existing child node (modify prefix in-place)
+            // Move the existing child under the split node (modify in place)
             Edge<K, T> childEdge;
             childEdge.label = child->prefix[commonPrefix];
             childEdge.node = child;
@@ -155,20 +150,19 @@ public:
             K remainingSearch(search.begin() + commonPrefix, search.end());
             if (remainingSearch.empty()) {
                 splitNode->leaf = leaf;
-                splitNode->minLeaf = leaf;
-                splitNode->maxLeaf = leaf;
+                splitNode->minLeaf = leaf.get();
+                splitNode->maxLeaf = leaf.get();
                 splitNode->leaves_in_subtree++;
                 splitNode->computeLinks();
                 n->computeLinks();
                 return {n, std::nullopt, false};
             }
 
-            // Create a new edge for the node
+            // Create a new edge for the remaining search
             auto newNode = std::make_shared<Node<K, T>>();
-            newNode->mutateCh = std::make_shared<std::condition_variable>();
             newNode->leaf = leaf;
-            newNode->minLeaf = leaf;
-            newNode->maxLeaf = leaf;
+            newNode->minLeaf = leaf.get();
+            newNode->maxLeaf = leaf.get();
             newNode->prefix = remainingSearch;
             newNode->leaves_in_subtree = 1;
 
@@ -412,59 +406,26 @@ public:
     std::tuple<Tree<K, T>, std::optional<T>, bool> del(const K& k) {
         auto txn = this->txn();
         auto result = txn.del(nullptr, root, k);
-        root = result.node;
-        size = txn.size;
+        if (result.node) {
+            root = result.node;
+        }
         return {*this, result.leaf ? std::optional<T>(result.leaf->val) : std::nullopt, result.leaf != nullptr};
     }
 
     std::tuple<Tree<K, T>, bool, int> deletePrefix(const K& k) {
         auto txn = this->txn();
         auto result = txn.deletePrefix(root, k);
-        root = result.node;
-        size = txn.size;
-        return {*this, result.node != nullptr, result.numDeletions};
+        if (result.node) {
+            root = result.node;
+        }
+        return {*this, result.numDeletions > 0, result.numDeletions};
     }
 
     std::optional<T> Get(const K& search) const {
-        auto n = root;
-        K remainingSearch = search;
-
-        while (n) {
-            // Handle leaf nodes
-            if (n->leaf && n->leaf->key == search) {
-                return n->leaf->val;
-            }
-
-            // Consume the prefix
-            if (!n->prefix.empty() && !remainingSearch.empty()) {
-                if (n->prefix.size() < remainingSearch.size()) {
-                    K searchPrefix(remainingSearch.begin(), remainingSearch.begin() + n->prefix.size());
-                    if (n->prefix != searchPrefix) {
-                        return std::nullopt;
-                    }
-                    remainingSearch = K(remainingSearch.begin() + n->prefix.size(), remainingSearch.end());
-                } else {
-                    if (n->prefix != remainingSearch) {
-                        return std::nullopt;
-                    }
-                    remainingSearch.clear();
-                }
-            }
-
-            // Handle key exhaustion
-            if (remainingSearch.empty()) {
-                return n->leaf ? std::optional<T>(n->leaf->val) : std::nullopt;
-            }
-
-            // Look for an edge
-            int idx;
-            auto child = n->getEdge(remainingSearch[0], &idx);
-            if (!child) {
-                return std::nullopt;
-            }
-            n = child;
+        T result;
+        if (root->Get(search, result)) {
+            return result;
         }
-
         return std::nullopt;
     }
 

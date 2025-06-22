@@ -10,7 +10,6 @@
 #include <memory>
 #include <algorithm>
 #include <cstring>
-#include <condition_variable>
 #include <optional>
 
 // Forward declarations
@@ -33,8 +32,8 @@ class LeafNode {
 public:
     K key;                  // key data
     T val;                  // value
-    std::shared_ptr<LeafNode<K, T>> nextLeaf;
-    std::shared_ptr<LeafNode<K, T>> prevLeaf;
+    LeafNode<K, T>* nextLeaf;  // Use raw pointers for internal links
+    LeafNode<K, T>* prevLeaf;  // Use raw pointers for internal links
 
     LeafNode(const K& k, const T& v);
 };
@@ -44,11 +43,10 @@ template<typename K, typename T>
 class Node {
 public:
     std::shared_ptr<LeafNode<K, T>> leaf;
-    std::shared_ptr<LeafNode<K, T>> minLeaf;
-    std::shared_ptr<LeafNode<K, T>> maxLeaf;
+    LeafNode<K, T>* minLeaf;  // Use raw pointers for internal links
+    LeafNode<K, T>* maxLeaf;  // Use raw pointers for internal links
     K prefix;
     std::vector<Edge<K, T>> edges;
-    std::shared_ptr<std::condition_variable> mutateCh;
     int leaves_in_subtree;
 
     Node();
@@ -69,10 +67,10 @@ public:
     std::shared_ptr<Node<K, T>> getLowerBoundEdge(typename K::value_type label, int* out_index) const;
 
     // Returns the minimum leaf in the node
-    std::shared_ptr<LeafNode<K, T>> minimumLeaf(bool* found = nullptr) const;
+    LeafNode<K, T>* minimumLeaf(bool* found = nullptr) const;
 
     // Returns the maximum leaf in the node
-    std::shared_ptr<LeafNode<K, T>> maximumLeaf(bool* found = nullptr) const;
+    LeafNode<K, T>* maximumLeaf(bool* found = nullptr) const;
 
     // Updates the node's minLeaf and maxLeaf fields
     void updateMinMaxLeaves();

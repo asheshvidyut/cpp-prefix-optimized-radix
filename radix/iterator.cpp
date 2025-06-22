@@ -39,7 +39,7 @@ template<typename K, typename T>
 class ReverseIterator {
 private:
     std::shared_ptr<Node<K, T>> node;
-    std::shared_ptr<LeafNode<K, T>> iterLeafNode;
+    LeafNode<K, T>* iterLeafNode;
     K key;
     bool patternMatch;
     std::shared_ptr<regex_t> pattern;
@@ -54,7 +54,7 @@ public:
     }
 
     // Seeks the iterator to a given prefix and returns the watch channel
-    std::shared_ptr<std::condition_variable> seekPrefixWatch(const K& prefix) {
+    void seekPrefixWatch(const K& prefix) {
         key = prefix;
         auto n = node;
         K search = prefix;
@@ -64,7 +64,7 @@ public:
             if (search.empty()) {
                 node = n;
                 iterLeafNode = node->maxLeaf;
-                return node->mutateCh;
+                return;
             }
 
             // Look for an edge
@@ -72,7 +72,7 @@ public:
             if (!nextNode) {
                 node = nullptr;
                 iterLeafNode = nullptr;
-                return nullptr;
+                return;
             }
 
             // Consume the search prefix
@@ -81,17 +81,15 @@ public:
             } else if (hasPrefix(nextNode->prefix, search)) {
                 node = nextNode;
                 iterLeafNode = node->maxLeaf;
-                return node->mutateCh;
+                return;
             } else {
                 node = nullptr;
                 iterLeafNode = nullptr;
-                return nullptr;
+                return;
             }
             
             n = nextNode;
         }
-        
-        return nullptr;
     }
 
     // Seeks the iterator to a given prefix
@@ -142,7 +140,7 @@ template<typename K, typename T>
 class Iterator {
 private:
     std::shared_ptr<Node<K, T>> node;
-    std::shared_ptr<LeafNode<K, T>> iterLeafNode;
+    LeafNode<K, T>* iterLeafNode;
     int iterCounter;
     K key;
     bool seekLowerBoundFlag;
@@ -167,7 +165,7 @@ public:
     }
 
     // Seeks the iterator to a given prefix and returns the watch channel
-    std::shared_ptr<std::condition_variable> seekPrefixWatch(const K& prefix) {
+    void seekPrefixWatch(const K& prefix) {
         // Wipe the stack
         seekLowerBoundFlag = false;
         key = prefix;
@@ -182,7 +180,7 @@ public:
                 node = n;
                 iterLeafNode = node->minLeaf;
                 iterCounter = node->leaves_in_subtree;
-                return node->mutateCh;
+                return;
             }
 
             // Look for an edge
@@ -191,7 +189,7 @@ public:
                 node = nullptr;
                 iterLeafNode = nullptr;
                 iterCounter = 0;
-                return nullptr;
+                return;
             }
 
             // Consume the search prefix
@@ -201,18 +199,16 @@ public:
                 node = nextNode;
                 iterLeafNode = node->minLeaf;
                 iterCounter = node->leaves_in_subtree;
-                return node->mutateCh;
+                return;
             } else {
                 node = nullptr;
                 iterLeafNode = nullptr;
                 iterCounter = 0;
-                return nullptr;
+                return;
             }
             
             n = nextNode;
         }
-        
-        return nullptr;
     }
 
     // Seeks the iterator to a given prefix
