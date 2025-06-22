@@ -174,5 +174,21 @@ int main() {
     std::cout << "Words found in tree: " << foundWords << std::endl;
     std::cout << "Success rate: " << (foundWords * 100.0 / totalWords) << "%" << std::endl;
     
+    // Test GetLeavesInSubtree function
+    std::cout << "\n=== Testing GetLeavesInSubtree ===" << std::endl;
+    Tree<std::string, std::string> test_tree;
+    std::cout << "Empty tree leaves: " << test_tree.GetLeavesInSubtree() << std::endl;
+    
+    auto [test_tree1, old1, updated1] = test_tree.insert("hello", "world");
+    std::cout << "After inserting 'hello': " << test_tree1.GetLeavesInSubtree() << std::endl;
+    
+    auto [test_tree2, old2, updated2] = test_tree1.insert("world", "hello");
+    std::cout << "After inserting 'world': " << test_tree2.GetLeavesInSubtree() << std::endl;
+    
+    auto [test_tree3, old3, updated3] = test_tree2.insert("hello", "updated");
+    std::cout << "After updating 'hello': " << test_tree3.GetLeavesInSubtree() << std::endl;
+    
+    std::cout << "Tree size: " << test_tree3.len() << std::endl;
+    
     return 0;
 }

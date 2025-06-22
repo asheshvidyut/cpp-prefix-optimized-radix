@@ -165,41 +165,27 @@ void Node<K, T>::updateMinMaxLeaves() {
     
     if (leaf != nullptr) {
         minLeaf = leaf;
-        maxLeaf = leaf;
-        leaves_in_subtree = 1;
     } else if (!edges.empty()) {
-        // Find the first non-null minLeaf from children
-        for (const auto& edge : edges) {
-            if (edge.node->minLeaf != nullptr) {
-                minLeaf = edge.node->minLeaf;
-                break;
-            }
-        }
-        
-        // Find the last non-null maxLeaf from children
-        for (auto it = edges.rbegin(); it != edges.rend(); ++it) {
-            if (it->node->maxLeaf != nullptr) {
-                maxLeaf = it->node->maxLeaf;
-                break;
-            }
-        }
+        minLeaf = edges[0].node->minLeaf;
+    }
+    
+    if (!edges.empty()) {
+        maxLeaf = edges.back().node->maxLeaf;
+    }
+    
+    if (maxLeaf == nullptr && leaf != nullptr) {
+        maxLeaf = leaf;
     }
 }
 
 template<typename K, typename T>
 void Node<K, T>::computeLinks() {
-    // First, ensure all child nodes have their links computed
-    for (auto& edge : edges) {
-        edge.node->computeLinks();
-    }
-    
     updateMinMaxLeaves();
+    // Reset leaves_in_subtree and count properly like Go does
     leaves_in_subtree = 0;
-    
     if (leaf != nullptr) {
         leaves_in_subtree++;
     }
-    
     if (!edges.empty()) {
         // Link the current node's leaf to the first child's minLeaf if they're different
         if (minLeaf != nullptr && minLeaf != edges[0].node->minLeaf) {
@@ -209,22 +195,17 @@ void Node<K, T>::computeLinks() {
             }
         }
     }
-    
-    // Link consecutive child nodes and count leaves
+    // Link consecutive child nodes and count leaves - use direct property access
     for (size_t i = 0; i < edges.size(); i++) {
         leaves_in_subtree += edges[i].node->leaves_in_subtree;
-        
         auto maxLFirst = edges[i].node->maxLeaf;
         std::shared_ptr<LeafNode<K, T>> minLSecond = nullptr;
-        
         if (i + 1 < edges.size()) {
             minLSecond = edges[i + 1].node->minLeaf;
         }
-        
         if (maxLFirst != nullptr) {
             maxLFirst->nextLeaf = minLSecond;
         }
-        
         if (minLSecond != nullptr) {
             minLSecond->prevLeaf = maxLFirst;
         }

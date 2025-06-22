@@ -12,6 +12,7 @@
 #include <functional>
 #include <optional>
 #include <tuple>
+#include <condition_variable>
 
 template<typename K>
 K concat(const K& a, const K& b);  // Implementation in node.hpp
@@ -58,6 +59,10 @@ public:
         return size;
     }
 
+    int GetLeavesInSubtree() const {
+        return root->leaves_in_subtree;
+    }
+
     // Transaction class for atomic operations
     class Transaction {
     protected:
@@ -75,62 +80,54 @@ public:
             const K& k,
             const K& search,
             const T& v) {
-            
             std::optional<T> oldVal;
             bool didUpdate = false;
 
             // Handle key exhaustion
             if (search.empty()) {
                 if (n->leaf) {
-                    // Update existing leaf
                     oldVal = n->leaf->val;
                     didUpdate = true;
                 }
-
-                // Create a new leaf
                 n->leaf = std::make_shared<LeafNode<K, T>>(k, v);
                 n->computeLinks();
-                if (!didUpdate) {
-                    size++;
-                }
                 return {n, oldVal, didUpdate};
             }
 
-            // Look for an edge
+            // Look for the edge
             int idx;
             auto child = n->getEdge(search[0], &idx);
 
             // No edge, create one
             if (!child) {
+                auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
                 auto newNode = std::make_shared<Node<K, T>>();
                 newNode->mutateCh = std::make_shared<std::condition_variable>();
-                newNode->leaf = std::make_shared<LeafNode<K, T>>(k, v);
+                newNode->leaf = leaf;
+                newNode->minLeaf = leaf;
+                newNode->maxLeaf = leaf;
                 newNode->prefix = search;
-                newNode->computeLinks();
+                newNode->leaves_in_subtree = 1;
 
                 Edge<K, T> e;
                 e.label = search[0];
                 e.node = newNode;
                 n->addEdge(e);
                 n->computeLinks();
-
-                size++;
                 return {n, std::nullopt, false};
             }
 
             // Determine longest prefix of the search key on match
             int commonPrefix = longestPrefix(search, child->prefix);
             if (commonPrefix == child->prefix.size()) {
-                // Consume the search prefix
                 K newSearch(search.begin() + commonPrefix, search.end());
                 auto [newChild, oldVal, didUpdate] = insert(child, k, newSearch, v);
-                if (newChild != child) {
-                    Edge<K, T> e = n->edges[idx];
-                    e.node = newChild;
-                    n->replaceEdge(e);
+                if (newChild) {
+                    n->edges[idx].node = newChild;
                     n->computeLinks();
+                    return {n, oldVal, didUpdate};
                 }
-                return {n, oldVal, didUpdate};
+                return {nullptr, oldVal, didUpdate};
             }
 
             // Split the node
@@ -138,13 +135,18 @@ public:
             splitNode->mutateCh = std::make_shared<std::condition_variable>();
             splitNode->prefix = K(search.begin(), search.begin() + commonPrefix);
 
-            // Restore the existing child node
-            auto modChild = child;
-            modChild->prefix = K(child->prefix.begin() + commonPrefix, child->prefix.end());
-            Edge<K, T> e1;
-            e1.label = modChild->prefix[0];
-            e1.node = modChild;
-            splitNode->addEdge(e1);
+            // Replace the edge in parent with splitNode
+            Edge<K, T> splitEdge;
+            splitEdge.label = search[0];
+            splitEdge.node = splitNode;
+            n->replaceEdge(splitEdge);
+
+            // Restore the existing child node (modify prefix in-place)
+            Edge<K, T> childEdge;
+            childEdge.label = child->prefix[commonPrefix];
+            childEdge.node = child;
+            splitNode->addEdge(childEdge);
+            child->prefix = K(child->prefix.begin() + commonPrefix, child->prefix.end());
 
             // Create a new leaf node
             auto leaf = std::make_shared<LeafNode<K, T>>(k, v);
@@ -153,30 +155,29 @@ public:
             K remainingSearch(search.begin() + commonPrefix, search.end());
             if (remainingSearch.empty()) {
                 splitNode->leaf = leaf;
+                splitNode->minLeaf = leaf;
+                splitNode->maxLeaf = leaf;
+                splitNode->leaves_in_subtree++;
                 splitNode->computeLinks();
-            } else {
-                // Create a new edge for the node
-                auto newNode = std::make_shared<Node<K, T>>();
-                newNode->mutateCh = std::make_shared<std::condition_variable>();
-                newNode->leaf = leaf;
-                newNode->prefix = remainingSearch;
-                newNode->computeLinks();
-
-                Edge<K, T> e2;
-                e2.label = remainingSearch[0];
-                e2.node = newNode;
-                splitNode->addEdge(e2);
-                splitNode->computeLinks();
+                n->computeLinks();
+                return {n, std::nullopt, false};
             }
 
-            // Replace the original edge
-            Edge<K, T> e;
-            e.label = search[0];
-            e.node = splitNode;
-            n->replaceEdge(e);
-            n->computeLinks();
+            // Create a new edge for the node
+            auto newNode = std::make_shared<Node<K, T>>();
+            newNode->mutateCh = std::make_shared<std::condition_variable>();
+            newNode->leaf = leaf;
+            newNode->minLeaf = leaf;
+            newNode->maxLeaf = leaf;
+            newNode->prefix = remainingSearch;
+            newNode->leaves_in_subtree = 1;
 
-            size++;
+            Edge<K, T> newEdge;
+            newEdge.label = remainingSearch[0];
+            newEdge.node = newNode;
+            splitNode->addEdge(newEdge);
+            splitNode->computeLinks();
+            n->computeLinks();
             return {n, std::nullopt, false};
         }
 
@@ -202,14 +203,13 @@ public:
 
                     // If the node has only one edge, merge with the child
                     if (n->edges.size() == 1) {
-                        auto child = n->edges[0].node;
-                        child->prefix = concat(n->prefix, child->prefix);
-                        result.node = child;
+                        mergeChild(n);
+                        result.node = n;
                         return result;
                     }
 
                     // Otherwise, just update the node
-                    n->updateMinMaxLeaves();
+                    n->computeLinks();
                     result.node = n;
                     return result;
                 }
@@ -254,10 +254,14 @@ public:
                     if (n->edges.empty() && !n->leaf) {
                         return result;
                     }
+                    // Check if we should merge after edge deletion
+                    if (n->edges.size() == 1 && !n->leaf) {
+                        mergeChild(n);
+                    }
                 }
 
                 // Update min/max leaves
-                n->updateMinMaxLeaves();
+                n->computeLinks();
                 result.node = n;
                 result.leaf = delResult.leaf;
                 return result;
@@ -324,10 +328,14 @@ public:
                     if (n->edges.empty() && !n->leaf) {
                         return result;
                     }
+                    // Check if we should merge after edge deletion
+                    if (n->edges.size() == 1 && !n->leaf) {
+                        mergeChild(n);
+                    }
                 }
 
                 // Update min/max leaves
-                n->updateMinMaxLeaves();
+                n->computeLinks();
                 result.node = n;
                 result.numDeletions = delResult.numDeletions;
                 return result;
@@ -343,8 +351,19 @@ public:
             }
 
             auto child = n->edges[0].node;
-            child->prefix = concat(n->prefix, child->prefix);
-            n = child;
+            
+            // Merge the nodes by copying child's properties to parent
+            n->prefix = concat(n->prefix, child->prefix);
+            n->leaf = child->leaf;
+            n->minLeaf = child->minLeaf;
+            n->maxLeaf = child->maxLeaf;
+            n->leaves_in_subtree = child->leaves_in_subtree;
+            
+            if (!child->edges.empty()) {
+                n->edges = child->edges;
+            } else {
+                n->edges.clear();
+            }
         }
 
         int trackChannelsAndCount(std::shared_ptr<Node<K, T>> n) {
@@ -384,7 +403,9 @@ public:
         auto txn = this->txn();
         auto [newRoot, oldVal, didUpdate] = txn.insert(root, k, k, v);
         root = newRoot;
-        size = txn.size;
+        if (!didUpdate) {
+            size++;
+        }
         return {*this, oldVal, didUpdate};
     }
 

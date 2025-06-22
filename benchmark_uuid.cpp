@@ -53,7 +53,8 @@ void InitializeUUIDData(int count = 100000) {
     
     // Insert all UUIDs into both data structures
     for (const auto& uuid : uuids) {
-        radix_tree.insert(uuid, uuid);
+        auto [new_tree, old_val, updated] = radix_tree.insert(uuid, uuid);
+        radix_tree = new_tree;  // Save the returned tree!
         btree_map[uuid] = uuid;
     }
 }

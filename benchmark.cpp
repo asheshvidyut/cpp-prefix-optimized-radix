@@ -25,14 +25,25 @@ void LoadWords() {
 }
 
 // Initialize data structures
-void InitializeData() {
-    LoadWords();
+void InitializeData(Tree<std::string, std::string>& radix_tree) {
+    std::ifstream file("words.txt");
+    std::string word;
+    int count = 0;
     
-    // Insert all words into both data structures
-    for (const auto& word : words) {
-        radix_tree.insert(word, word);
-        btree_map[word] = word;
+    while (std::getline(file, word)) {
+        if (!word.empty()) {
+            words.push_back(word);
+            auto [new_tree, old_val, updated] = radix_tree.insert(word, word);
+            radix_tree = new_tree;
+            btree_map[word] = word;
+            count++;
+            if (count % 10000 == 0) {
+                std::cout << "Inserted " << count << " words..." << std::endl;
+            }
+        }
     }
+    
+    std::cout << "Total words inserted: " << count << std::endl;
 }
 
 // Benchmark: Insert all words into radix tree
@@ -99,6 +110,7 @@ BENCHMARK(BM_BTreeMapLookup);
 
 // Benchmark: Iterate through all words in radix tree
 static void BM_RadixTreeIterate(benchmark::State& state) {
+    std::cout << radix_tree.GetLeavesInSubtree() << std::endl;
     for (auto _ : state) {
         auto iterator = radix_tree.iterator();
         int count = 0;
@@ -174,7 +186,7 @@ BENCHMARK(BM_BTreeMapRandomAccess);
 
 int main(int argc, char** argv) {
     // Initialize data before running benchmarks
-    InitializeData();
+    InitializeData(radix_tree);
     
     // Print some statistics
     std::cout << "Loaded " << words.size() << " words\n";
