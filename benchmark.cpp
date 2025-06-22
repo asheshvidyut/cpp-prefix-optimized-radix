@@ -61,13 +61,16 @@ static void BM_RadixTreeInsert(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
     
     for (auto _ : state) {
-        Tree<std::string, std::string> tree;
+        // Clear the existing tree instead of creating a new one
+        radix_tree = Tree<std::string, std::string>();
+        
         for (const auto& word : words) {
-            auto [new_tree, old_val, updated] = tree.insert(word, word);
+            auto [new_tree, old_val, updated] = radix_tree.insert(word, word);
+            radix_tree = new_tree;
             benchmark::DoNotOptimize(old_val);
             benchmark::DoNotOptimize(updated);
         }
-        benchmark::DoNotOptimize(tree);
+        benchmark::DoNotOptimize(radix_tree);
     }
     
     size_t end_memory = GetCurrentMemoryUsage();
@@ -82,13 +85,15 @@ static void BM_BTreeMapInsert(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
     
     for (auto _ : state) {
-        absl::btree_map<std::string, std::string> map;
+        // Clear the existing map instead of creating a new one
+        btree_map.clear();
+        
         for (const auto& word : words) {
-            auto [it, inserted] = map.insert({word, word});
+            auto [it, inserted] = btree_map.insert({word, word});
             benchmark::DoNotOptimize(it);
             benchmark::DoNotOptimize(inserted);
         }
-        benchmark::DoNotOptimize(map);
+        benchmark::DoNotOptimize(btree_map);
     }
     
     size_t end_memory = GetCurrentMemoryUsage();
@@ -139,13 +144,11 @@ static void BM_RadixTreeIterate(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
     
     for (auto _ : state) {
-        auto iterator = radix_tree.iterator();
         int count = 0;
-        while (true) {
-            auto result = iterator.next();
-            if (!result.found) break;
-            benchmark::DoNotOptimize(result.key);
-            benchmark::DoNotOptimize(result.val);
+        // Use range-based for loop
+        for (const auto& [key, value] : radix_tree) {
+            benchmark::DoNotOptimize(key);
+            benchmark::DoNotOptimize(value);
             count++;
         }
         benchmark::DoNotOptimize(count);

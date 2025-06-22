@@ -479,6 +479,15 @@ public:
     Iterator<K, T> iterator() const {
         return Iterator<K, T>(root);
     }
+
+    // Range-based for loop support
+    Iterator<K, T> begin() const {
+        return Iterator<K, T>(root);
+    }
+
+    Iterator<K, T> end() const {
+        return Iterator<K, T>(nullptr);
+    }
 };
 
 // Non-template function declaration

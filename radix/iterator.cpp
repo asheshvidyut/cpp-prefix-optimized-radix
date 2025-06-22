@@ -148,6 +148,23 @@ public:
         }
     }
 
+    // Range-based for loop operators
+    std::pair<const K&, const T&> operator*() const {
+        return {iterLeafNode->key, iterLeafNode->val};
+    }
+
+    Iterator& operator++() {
+        if (iterCounter > 0 && iterLeafNode) {
+            iterCounter--;
+            iterLeafNode = iterLeafNode->nextLeaf;
+        }
+        return *this;
+    }
+
+    bool operator!=(const Iterator& other) const {
+        return iterLeafNode != other.iterLeafNode;
+    }
+
     // Seeks the iterator to a given prefix and returns the watch channel
     void seekPrefixWatch(const K& prefix) {
         // Wipe the stack
@@ -213,7 +230,7 @@ public:
         IteratorResult<K, T> result;
         result.found = false;
 
-        while (iterCounter > 0 && iterLeafNode) {
+        if (iterCounter > 0 && iterLeafNode) {
             iterCounter--;
             
             result.key = iterLeafNode->key;
