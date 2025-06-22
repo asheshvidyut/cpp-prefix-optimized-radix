@@ -6,6 +6,7 @@
 #include <string>
 #include <random>
 #include <iostream>
+#include <sys/resource.h>
 #include "radix/tree.hpp"
 
 // Global data for benchmarks
@@ -46,8 +47,19 @@ void InitializeData(Tree<std::string, std::string>& radix_tree) {
     std::cout << "Total words inserted: " << count << std::endl;
 }
 
+// Helper function to get current memory usage
+size_t GetCurrentMemoryUsage() {
+    struct rusage usage;
+    if (getrusage(RUSAGE_SELF, &usage) == 0) {
+        return usage.ru_maxrss * 1024; // Convert KB to bytes
+    }
+    return 0;
+}
+
 // Benchmark: Insert all words into radix tree
 static void BM_RadixTreeInsert(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     for (auto _ : state) {
         Tree<std::string, std::string> tree;
         for (const auto& word : words) {
@@ -58,6 +70,8 @@ static void BM_RadixTreeInsert(benchmark::State& state) {
         benchmark::DoNotOptimize(tree);
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string) * 2);
 }
@@ -65,6 +79,8 @@ BENCHMARK(BM_RadixTreeInsert);
 
 // Benchmark: Insert all words into btree_map
 static void BM_BTreeMapInsert(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     for (auto _ : state) {
         absl::btree_map<std::string, std::string> map;
         for (const auto& word : words) {
@@ -75,6 +91,8 @@ static void BM_BTreeMapInsert(benchmark::State& state) {
         benchmark::DoNotOptimize(map);
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string) * 2);
 }
@@ -82,6 +100,8 @@ BENCHMARK(BM_BTreeMapInsert);
 
 // Benchmark: Lookup all words in radix tree
 static void BM_RadixTreeLookup(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     for (auto _ : state) {
         for (const auto& word : words) {
             auto result = radix_tree.Get(word);
@@ -89,6 +109,8 @@ static void BM_RadixTreeLookup(benchmark::State& state) {
         }
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string));
 }
@@ -96,6 +118,8 @@ BENCHMARK(BM_RadixTreeLookup);
 
 // Benchmark: Lookup all words in btree_map
 static void BM_BTreeMapLookup(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     for (auto _ : state) {
         for (const auto& word : words) {
             auto it = btree_map.find(word);
@@ -103,6 +127,8 @@ static void BM_BTreeMapLookup(benchmark::State& state) {
         }
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string));
 }
@@ -110,6 +136,8 @@ BENCHMARK(BM_BTreeMapLookup);
 
 // Benchmark: Iterate through all words in radix tree
 static void BM_RadixTreeIterate(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     for (auto _ : state) {
         auto iterator = radix_tree.iterator();
         int count = 0;
@@ -123,6 +151,8 @@ static void BM_RadixTreeIterate(benchmark::State& state) {
         benchmark::DoNotOptimize(count);
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string) * 2);
 }
@@ -130,6 +160,8 @@ BENCHMARK(BM_RadixTreeIterate);
 
 // Benchmark: Iterate through all words in btree_map
 static void BM_BTreeMapIterate(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     for (auto _ : state) {
         int count = 0;
         for (const auto& [key, value] : btree_map) {
@@ -140,6 +172,8 @@ static void BM_BTreeMapIterate(benchmark::State& state) {
         benchmark::DoNotOptimize(count);
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string) * 2);
 }
@@ -147,6 +181,8 @@ BENCHMARK(BM_BTreeMapIterate);
 
 // Benchmark: Random access patterns (cache performance)
 static void BM_RadixTreeRandomAccess(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, words.size() - 1);
@@ -159,6 +195,8 @@ static void BM_RadixTreeRandomAccess(benchmark::State& state) {
         }
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * 1000);
     state.SetBytesProcessed(state.iterations() * 1000 * sizeof(std::string));
 }
@@ -166,6 +204,8 @@ BENCHMARK(BM_RadixTreeRandomAccess);
 
 // Benchmark: Random access patterns in btree_map
 static void BM_BTreeMapRandomAccess(benchmark::State& state) {
+    size_t start_memory = GetCurrentMemoryUsage();
+    
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, words.size() - 1);
@@ -178,6 +218,8 @@ static void BM_BTreeMapRandomAccess(benchmark::State& state) {
         }
     }
     
+    size_t end_memory = GetCurrentMemoryUsage();
+    state.counters["MemoryPeak"] = end_memory - start_memory;
     state.SetItemsProcessed(state.iterations() * 1000);
     state.SetBytesProcessed(state.iterations() * 1000 * sizeof(std::string));
 }
