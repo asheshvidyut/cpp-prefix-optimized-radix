@@ -110,7 +110,6 @@ BENCHMARK(BM_BTreeMapLookup);
 
 // Benchmark: Iterate through all words in radix tree
 static void BM_RadixTreeIterate(benchmark::State& state) {
-    std::cout << radix_tree.GetLeavesInSubtree() << std::endl;
     for (auto _ : state) {
         auto iterator = radix_tree.iterator();
         int count = 0;
