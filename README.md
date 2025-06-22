@@ -116,7 +116,13 @@ BM_BTreeMapIterate           300113 ns       300112 ns         2332 MemoryPeak=0
 BM_RadixTreeRandomAccess     528395 ns       528394 ns         1199 MemoryPeak=0 bytes_per_second=43.3165Mi/s items_per_second=1.89253M/s
 BM_BTreeMapRandomAccess      170838 ns       170838 ns         4055 MemoryPeak=0 bytes_per_second=133.976Mi/s items_per_second=5.85348M/s
 BM_RadixTreeSeekPrefix        92119 ns        92118 ns         7606 MemoryPeak=0 bytes_per_second=11.0447Gi/s items_per_second=247.065M/s
-BM_BTreeMapPrefixSearch     1005711 ns      1005711 ns          693 MemoryPeak=0 bytes_per_second=1.01163Gi/s items_per_second=22.6298M/s```
+BM_BTreeMapPrefixSearch     1005711 ns      1005711 ns          693 MemoryPeak=0 bytes_per_second=1.01163Gi/s items_per_second=22.6298M/s
+```
+
+**Key insight:**
+- `BM_RadixTreeSeekPrefix` is over **10x faster** than `BM_BTreeMapPrefixSearch` for finding all words starting with 's'.
+- This demonstrates the efficiency of the radix tree for prefix queries compared to general-purpose ordered maps.
+- For workloads with heavy prefix search requirements, the radix tree offers a significant performance advantage.
 
 ## Dependencies
 
