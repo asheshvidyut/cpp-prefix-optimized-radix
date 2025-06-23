@@ -229,7 +229,7 @@ static void BM_BTreeMapRandomAccess(benchmark::State& state) {
 BENCHMARK(BM_BTreeMapRandomAccess);
 
 // Benchmark: Prefix search using radix tree seekPrefix("s")
-static void BM_RadixTreeSeekPrefix(benchmark::State& state) {
+static void BM_RadixTreePrefixSearch(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
     
     for (auto _ : state) {
@@ -255,15 +255,27 @@ static void BM_RadixTreeSeekPrefix(benchmark::State& state) {
     state.SetItemsProcessed(state.iterations() * 22759); // Approximate count of words starting with 's'
     state.SetBytesProcessed(state.iterations() * 22759 * sizeof(std::string) * 2);
 }
-BENCHMARK(BM_RadixTreeSeekPrefix);
+BENCHMARK(BM_RadixTreePrefixSearch);
 
-// Benchmark: Prefix search using BTree iteration and string matching
+// Benchmark: Prefix search using BTree lower_bound and upper_bound
 static void BM_BTreeMapPrefixSearch(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
     
     for (auto _ : state) {
         int count = 0;
-        for (const auto& [key, value] : btree_map) {
+        
+        // Use lower_bound to find the first key >= "s"
+        auto lower = btree_map.lower_bound("s");
+        
+        // Use upper_bound to find the first key > "s" + max char
+        // For prefix "s", we want all keys that start with "s"
+        // The next prefix after "s" would be "t", so we use "t" as upper bound
+        auto upper = btree_map.upper_bound("t");
+        
+        // Iterate from lower_bound to upper_bound
+        for (auto it = lower; it != upper; ++it) {
+            const auto& [key, value] = *it;
+            // Double-check that the key actually starts with "s" (should be redundant but safe)
             if (key.find("s") == 0) {
                 benchmark::DoNotOptimize(key);
                 benchmark::DoNotOptimize(value);
