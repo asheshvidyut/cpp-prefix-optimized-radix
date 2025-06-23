@@ -94,6 +94,10 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
    - `BM_RadixTreeRandomAccess`: Random access patterns
    - `BM_BTreeMapRandomAccess`: Random access patterns in btree_map
 
+5. **Prefix Search Performance**
+   - `BM_RadixTreePrefixSearch`: Lookup all words starting with a given prefix in radix tree
+   - `BM_BTreeMapPrefixSearch`: Lookup all words starting with a given prefix in btree_map
+
 ### Benchmarking Results
 
 ```bash
@@ -107,47 +111,17 @@ Load Average: 2.38, 2.61, 2.57
 -----------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations UserCounters...
 -----------------------------------------------------------------------------------
-BM_RadixTreeInsert         71248346 ns     71037500 ns           10 MemoryPeak=1.1073G bytes_per_second=152.004Mi/s items_per_second=3.32058M/s
-BM_BTreeMapInsert          17749368 ns     16790405 ns           42 MemoryPeak=2.38236G bytes_per_second=643.106Mi/s items_per_second=14.0489M/s
-BM_RadixTreeLookup         63523439 ns     63523455 ns           11 MemoryPeak=0 bytes_per_second=84.9923Mi/s items_per_second=3.71337M/s
-BM_BTreeMapLookup          17925415 ns     17925410 ns           39 MemoryPeak=0 bytes_per_second=301.193Mi/s items_per_second=13.1593M/s
-BM_RadixTreeIterate          664484 ns       664486 ns         1013 MemoryPeak=0 bytes_per_second=15.8693Gi/s items_per_second=354.99M/s
-BM_BTreeMapIterate           300113 ns       300112 ns         2332 MemoryPeak=0 bytes_per_second=35.1366Gi/s items_per_second=785.992M/s
-BM_RadixTreeRandomAccess     528395 ns       528394 ns         1199 MemoryPeak=0 bytes_per_second=43.3165Mi/s items_per_second=1.89253M/s
-BM_BTreeMapRandomAccess      170838 ns       170838 ns         4055 MemoryPeak=0 bytes_per_second=133.976Mi/s items_per_second=5.85348M/s
-BM_RadixTreeSeekPrefix        92119 ns        92118 ns         7606 MemoryPeak=0 bytes_per_second=11.0447Gi/s items_per_second=247.065M/s
-BM_BTreeMapPrefixSearch     1005711 ns      1005711 ns          693 MemoryPeak=0 bytes_per_second=1.01163Gi/s items_per_second=22.6298M/s
+BM_RadixTreeInsert         64874683 ns     64857000 ns           10 MemoryPeak=16.5591G bytes_per_second=166.489Mi/s items_per_second=3.63702M/s
+BM_BTreeMapInsert          14735861 ns     14734067 ns           45 MemoryPeak=369.099M bytes_per_second=732.86Mi/s items_per_second=16.0096M/s
+BM_RadixTreeLookup         57541601 ns     57520250 ns           12 MemoryPeak=0 bytes_per_second=93.8626Mi/s items_per_second=4.10092M/s
+BM_BTreeMapLookup          17347551 ns     17335244 ns           41 MemoryPeak=0 bytes_per_second=311.447Mi/s items_per_second=13.6073M/s
+BM_RadixTreeIterate          746164 ns       746063 ns          924 MemoryPeak=0 bytes_per_second=14.1341Gi/s items_per_second=316.174M/s
+BM_BTreeMapIterate           316191 ns       316167 ns         2200 MemoryPeak=0 bytes_per_second=33.3524Gi/s items_per_second=746.081M/s
+BM_RadixTreeRandomAccess     618687 ns       618634 ns          998 MemoryPeak=0 bytes_per_second=36.9979Mi/s items_per_second=1.61646M/s
+BM_BTreeMapRandomAccess      188974 ns       188905 ns         3748 MemoryPeak=0 bytes_per_second=121.162Mi/s items_per_second=5.29367M/s
+BM_RadixTreePrefixSearch      94661 ns        94576 ns         7382 MemoryPeak=0 bytes_per_second=10.7576Gi/s items_per_second=240.643M/s
+BM_BTreeMapPrefixSearch       52531 ns        52503 ns        12272 MemoryPeak=0 bytes_per_second=19.3782Gi/s items_per_second=433.484M/s
 ```
-
-**Key insight:**
-- `BM_RadixTreeSeekPrefix` is over **10x faster** than `BM_BTreeMapPrefixSearch` for finding all words starting with 's'.
-- This demonstrates the efficiency of the radix tree for prefix queries compared to general-purpose ordered maps.
-- For workloads with heavy prefix search requirements, the radix tree offers a significant performance advantage.
-
-## Key Insights from Benchmarks
-
-- **Insertion:**
-  - BTreeMap is significantly faster than Radix Tree for bulk insertions (see BM_BTreeMapInsert vs BM_RadixTreeInsert).
-  - BTreeMap also uses more peak memory during insertion, while Radix Tree is more memory efficient for this phase.
-
-- **Lookup:**
-  - BTreeMap provides much faster point lookups than Radix Tree (BM_BTreeMapLookup vs BM_RadixTreeLookup).
-  - For workloads dominated by exact key lookups, BTreeMap is preferable.
-
-- **Iteration:**
-  - Both data structures are extremely fast for full iteration, but BTreeMap is about 2x faster (BM_BTreeMapIterate vs BM_RadixTreeIterate).
-
-- **Random Access:**
-  - BTreeMap is about 3x faster for random access patterns (BM_BTreeMapRandomAccess vs BM_RadixTreeRandomAccess).
-
-- **Prefix Search:**
-  - Radix Tree is over **10x faster** than BTreeMap for prefix queries (BM_RadixTreeSeekPrefix vs BM_BTreeMapPrefixSearch).
-  - This is the main advantage of the Radix Tree: if your workload involves many prefix or range queries, it will outperform general-purpose ordered maps.
-
-**Summary:**
-- Use **Radix Tree** for workloads with heavy prefix search or range query requirements.
-- Use **BTreeMap** for workloads dominated by insertions, lookups, or random access.
-- Both structures are highly efficient for iteration, but BTreeMap is generally faster for most operations except prefix search.
 
 ## Dependencies
 
