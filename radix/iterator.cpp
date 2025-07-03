@@ -40,14 +40,17 @@ class ReverseIterator {
 private:
     std::shared_ptr<Node<K, T>> node;
     LeafNode<K, T>* iterLeafNode;
+    int iterCounter;
     K key;
 
 public:
     ReverseIterator(std::shared_ptr<Node<K, T>> n) : node(n) {
         if (node) {
             iterLeafNode = node->maxLeaf;
+            iterCounter = node->leaves_in_subtree;
         } else {
             iterLeafNode = nullptr;
+            iterCounter = 0;
         }
     }
 
@@ -100,7 +103,9 @@ public:
         IteratorResult<K, T> result;
         result.found = false;
 
-        if (iterLeafNode) {
+        if (iterCounter > 0 && iterLeafNode) {
+            iterCounter--;
+            
             result.key = iterLeafNode->key;
             result.val = iterLeafNode->val;
             result.found = true;
