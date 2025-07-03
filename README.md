@@ -102,25 +102,31 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
 
 ```bash
 Running ./benchmark
-Run on (10 X 24 MHz CPU s)
+Run on (14 X 24 MHz CPU s)
 CPU Caches:
   L1 Data 64 KiB
   L1 Instruction 128 KiB
-  L2 Unified 4096 KiB (x10)
-Load Average: 2.38, 2.61, 2.57
------------------------------------------------------------------------------------
-Benchmark                         Time             CPU   Iterations UserCounters...
------------------------------------------------------------------------------------
-BM_RadixTreeInsert         64874683 ns     64857000 ns           10 MemoryPeak=16.5591G bytes_per_second=166.489Mi/s items_per_second=3.63702M/s
-BM_BTreeMapInsert          14735861 ns     14734067 ns           45 MemoryPeak=369.099M bytes_per_second=732.86Mi/s items_per_second=16.0096M/s
-BM_RadixTreeLookup         57541601 ns     57520250 ns           12 MemoryPeak=0 bytes_per_second=93.8626Mi/s items_per_second=4.10092M/s
-BM_BTreeMapLookup          17347551 ns     17335244 ns           41 MemoryPeak=0 bytes_per_second=311.447Mi/s items_per_second=13.6073M/s
-BM_RadixTreeIterate          746164 ns       746063 ns          924 MemoryPeak=0 bytes_per_second=14.1341Gi/s items_per_second=316.174M/s
-BM_BTreeMapIterate           316191 ns       316167 ns         2200 MemoryPeak=0 bytes_per_second=33.3524Gi/s items_per_second=746.081M/s
-BM_RadixTreeRandomAccess     618687 ns       618634 ns          998 MemoryPeak=0 bytes_per_second=36.9979Mi/s items_per_second=1.61646M/s
-BM_BTreeMapRandomAccess      188974 ns       188905 ns         3748 MemoryPeak=0 bytes_per_second=121.162Mi/s items_per_second=5.29367M/s
-BM_RadixTreePrefixSearch      94661 ns        94576 ns         7382 MemoryPeak=0 bytes_per_second=10.7576Gi/s items_per_second=240.643M/s
-BM_BTreeMapPrefixSearch       52531 ns        52503 ns        12272 MemoryPeak=0 bytes_per_second=19.3782Gi/s items_per_second=433.484M/s
+  L2 Unified 4096 KiB (x14)
+Load Average: 3.36, 3.77, 3.94
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations MemoryPeak MemoryPerItem PeakPerItem   RSSDelta TotalMemory bytes_per_second items_per_second
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+BM_RadixTreeInsert         71118185 ns     71009333 ns            9   117.306G        497.3k      497.3k          0    117.306G      152.065Mi/s        3.3219M/s
+BM_BTreeMapInsert          15959900 ns     15801778 ns           45   137.875G      584.499k    584.499k          0    137.875G      683.341Mi/s       14.9278M/s
+---------------------------------------------------------------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations MemoryDelta MemoryPeak   RSSDelta bytes_per_second items_per_second
+---------------------------------------------------------------------------------------------------------------------------------------
+BM_RadixTreeLookup         58941472 ns     58919917 ns           12           0   137.875G          0      91.6329Mi/s        4.0035M/s
+BM_BTreeMapLookup          17426093 ns     17424475 ns           40           0   137.976G          0      309.852Mi/s       13.5376M/s
+----------------------------------------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations MemoryPeak bytes_per_second items_per_second
+----------------------------------------------------------------------------------------------------------------
+BM_RadixTreeIterate          913956 ns       912172 ns          752          0      11.5602Gi/s       258.598M/s
+BM_BTreeMapIterate           325366 ns       325335 ns         2143          0      32.4126Gi/s       725.057M/s
+BM_RadixTreeRandomAccess     545712 ns       545420 ns         1177          0      41.9643Mi/s       1.83345M/s
+BM_BTreeMapRandomAccess      178879 ns       178839 ns         3855          0      127.982Mi/s       5.59162M/s
+BM_RadixTreePrefixSearch      95467 ns        95460 ns         7277          0      10.6579Gi/s       238.414M/s
+BM_BTreeMapPrefixSearch       54735 ns        54720 ns        13142          0      18.5929Gi/s       415.917M/s
 ```
 
 ## Dependencies
@@ -132,3 +138,33 @@ BM_BTreeMapPrefixSearch       52531 ns        52503 ns        12272 MemoryPeak=0
 ## License
 
 This project is open source. See the original Go implementation for licensing details.
+
+## Benchmark Memory Usage Metrics
+
+When you run `./run_benchmark.sh`, the output includes several memory usage metrics for each benchmark:
+
+- **TotalMemory**: The total memory used by the process after all insertions. This is the main metric for total memory consumed by your data structure.
+- **MemoryPeak**: The peak memory usage observed during the benchmark.
+- **RSSDelta**: The change in Resident Set Size (physical memory used) during the benchmark.
+- **MemoryPerItem**: The average memory usage per item (for insert benchmarks).
+- **PeakPerItem**: The peak memory usage per item (for insert benchmarks).
+
+### Example Output
+
+```
+Benchmark           ...   TotalMemory   MemoryPeak   MemoryPerItem   PeakPerItem   RSSDelta
+BM_RadixTreeInsert  ...   105.764G      105.764G     448.367k        448.367k      0
+BM_BTreeMapInsert   ...   126.987G      126.987G     538.339k        538.339k      0
+```
+
+- **TotalMemory** is the value you should use to compare the total memory consumed by different data structures after all insertions.
+
+### JSON Output
+
+For more detailed analysis, you can run:
+
+```sh
+./benchmark --benchmark_format=json > results.json
+```
+
+This will output all memory statistics in JSON format for further processing or visualization.

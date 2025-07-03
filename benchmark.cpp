@@ -9,10 +9,45 @@
 #include <sys/resource.h>
 #include "radix/tree.hpp"
 
+// Forward declarations
+size_t GetCurrentMemoryUsage();
+size_t GetPeakMemoryUsage();
+size_t GetRSS();
+
 // Global data for benchmarks
 std::vector<std::string> words;
 Tree<std::string, std::string> radix_tree;
 absl::btree_map<std::string, std::string> btree_map;
+
+// Custom memory manager for detailed tracking
+class CustomMemoryManager : public benchmark::MemoryManager {
+public:
+    void Start() override {
+        start_memory_ = GetCurrentMemoryUsage();
+        start_rss_ = GetRSS();
+    }
+    
+    void Stop(Result& result) override {
+        end_memory_ = GetCurrentMemoryUsage();
+        end_rss_ = GetRSS();
+        peak_memory_ = GetPeakMemoryUsage();
+        
+        result.num_allocs = 0;  // We don't track individual allocations
+        result.max_bytes_used = peak_memory_;
+        result.total_allocated_bytes = end_memory_ - start_memory_;
+        result.net_heap_growth = end_memory_ - start_memory_;
+    }
+    
+private:
+    size_t start_memory_ = 0;
+    size_t end_memory_ = 0;
+    size_t start_rss_ = 0;
+    size_t end_rss_ = 0;
+    size_t peak_memory_ = 0;
+};
+
+// Global memory manager instance
+static CustomMemoryManager memory_manager;
 
 // Load words from file
 void LoadWords() {
@@ -56,9 +91,30 @@ size_t GetCurrentMemoryUsage() {
     return 0;
 }
 
+// Helper function to get peak memory usage
+size_t GetPeakMemoryUsage() {
+    struct rusage usage;
+    if (getrusage(RUSAGE_SELF, &usage) == 0) {
+        return usage.ru_maxrss * 1024; // Convert KB to bytes
+    }
+    return 0;
+}
+
+// Helper function to get current resident set size
+size_t GetRSS() {
+    std::ifstream statm("/proc/self/statm");
+    if (statm.is_open()) {
+        size_t pages;
+        statm >> pages;
+        return pages * 4096; // Convert pages to bytes (assuming 4KB pages)
+    }
+    return 0;
+}
+
 // Benchmark: Insert all words into radix tree
 static void BM_RadixTreeInsert(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
+    size_t start_rss = GetRSS();
     
     for (auto _ : state) {
         // Clear the existing tree instead of creating a new one
@@ -74,7 +130,16 @@ static void BM_RadixTreeInsert(benchmark::State& state) {
     }
     
     size_t end_memory = GetCurrentMemoryUsage();
-    state.counters["MemoryPeak"] = end_memory - start_memory;
+    size_t end_rss = GetRSS();
+    size_t peak_memory = GetPeakMemoryUsage();
+    
+    // Memory counters
+    state.counters["TotalMemory"] = end_memory;
+    state.counters["MemoryPeak"] = peak_memory;
+    state.counters["RSSDelta"] = end_rss - start_rss;
+    state.counters["MemoryPerItem"] = end_memory / words.size();
+    state.counters["PeakPerItem"] = peak_memory / words.size();
+    
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string) * 2);
 }
@@ -83,6 +148,7 @@ BENCHMARK(BM_RadixTreeInsert);
 // Benchmark: Insert all words into btree_map
 static void BM_BTreeMapInsert(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
+    size_t start_rss = GetRSS();
     
     for (auto _ : state) {
         // Clear the existing map instead of creating a new one
@@ -97,7 +163,16 @@ static void BM_BTreeMapInsert(benchmark::State& state) {
     }
     
     size_t end_memory = GetCurrentMemoryUsage();
-    state.counters["MemoryPeak"] = end_memory - start_memory;
+    size_t end_rss = GetRSS();
+    size_t peak_memory = GetPeakMemoryUsage();
+    
+    // Memory counters
+    state.counters["TotalMemory"] = end_memory;
+    state.counters["MemoryPeak"] = peak_memory;
+    state.counters["RSSDelta"] = end_rss - start_rss;
+    state.counters["MemoryPerItem"] = end_memory / words.size();
+    state.counters["PeakPerItem"] = peak_memory / words.size();
+    
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string) * 2);
 }
@@ -106,6 +181,7 @@ BENCHMARK(BM_BTreeMapInsert);
 // Benchmark: Lookup all words in radix tree
 static void BM_RadixTreeLookup(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
+    size_t start_rss = GetRSS();
     
     for (auto _ : state) {
         for (const auto& word : words) {
@@ -115,7 +191,14 @@ static void BM_RadixTreeLookup(benchmark::State& state) {
     }
     
     size_t end_memory = GetCurrentMemoryUsage();
-    state.counters["MemoryPeak"] = end_memory - start_memory;
+    size_t end_rss = GetRSS();
+    size_t peak_memory = GetPeakMemoryUsage();
+    
+    // Memory counters
+    state.counters["MemoryDelta"] = end_memory - start_memory;
+    state.counters["MemoryPeak"] = peak_memory;
+    state.counters["RSSDelta"] = end_rss - start_rss;
+    
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string));
 }
@@ -124,6 +207,7 @@ BENCHMARK(BM_RadixTreeLookup);
 // Benchmark: Lookup all words in btree_map
 static void BM_BTreeMapLookup(benchmark::State& state) {
     size_t start_memory = GetCurrentMemoryUsage();
+    size_t start_rss = GetRSS();
     
     for (auto _ : state) {
         for (const auto& word : words) {
@@ -133,7 +217,14 @@ static void BM_BTreeMapLookup(benchmark::State& state) {
     }
     
     size_t end_memory = GetCurrentMemoryUsage();
-    state.counters["MemoryPeak"] = end_memory - start_memory;
+    size_t end_rss = GetRSS();
+    size_t peak_memory = GetPeakMemoryUsage();
+    
+    // Memory counters
+    state.counters["MemoryDelta"] = end_memory - start_memory;
+    state.counters["MemoryPeak"] = peak_memory;
+    state.counters["RSSDelta"] = end_rss - start_rss;
+    
     state.SetItemsProcessed(state.iterations() * words.size());
     state.SetBytesProcessed(state.iterations() * words.size() * sizeof(std::string));
 }
@@ -300,6 +391,9 @@ int main(int argc, char** argv) {
     std::cout << "Loaded " << words.size() << " words\n";
     std::cout << "Radix tree size: " << radix_tree.len() << "\n";
     std::cout << "BTree map size: " << btree_map.size() << "\n";
+    
+    // Register memory manager (commented out due to API issues)
+    // benchmark::MemoryManager::Register(&memory_manager);
     
     // Run benchmarks
     benchmark::Initialize(&argc, argv);
