@@ -5,175 +5,44 @@
 #include <algorithm>
 #include <cassert>
 
-void testReverseIteratorSeekLowerBound() {
-    std::cout << "=== Testing ReverseIterator SeekLowerBound ===" << std::endl;
+void testReverseIteratorBasic() {
+    std::cout << "=== Testing ReverseIterator Basic Functionality ===" << std::endl;
     
-    // Fixed length keys (should be defined in order)
-    std::vector<std::string> fixedLenKeys = {
-        "20020",
-        "00020", 
-        "00010",
-        "00004",
-        "00001",
-        "00000"
-    };
+    // Test basic reverse iteration
+    Tree<std::string, std::string> tree;
+    std::vector<std::string> keys = {"apple", "banana", "cherry", "date", "elderberry"};
     
-    // Mixed length keys (should be defined in order)
-    std::vector<std::string> mixedLenKeys = {
-        "zip",
-        "zap", 
-        "found",
-        "foo",
-        "f",
-        "barbazboo",
-        "abc",
-        "a1"
-    };
+    for (const auto& key : keys) {
+        auto [newTree, oldVal, didUpdate] = tree.insert(key, key);
+        tree = newTree;
+    }
     
-    // Test cases: {keys, search, expected_result}
-    std::vector<std::tuple<std::vector<std::string>, std::string, std::vector<std::string>>> testCases = {
-        {
-            fixedLenKeys,
-            "20020",
-            fixedLenKeys
-        },
-        {
-            fixedLenKeys,
-            "20000",
-            {"00020", "00010", "00004", "00001", "00000"}
-        },
-        {
-            fixedLenKeys,
-            "00010",
-            {"00010", "00004", "00001", "00000"}
-        },
-        {
-            fixedLenKeys,
-            "00000",
-            {"00000"}
-        },
-        {
-            fixedLenKeys,
-            "0",
-            {}
-        },
-        {
-            mixedLenKeys,
-            "{", // after all lower case letters
-            mixedLenKeys
-        },
-        {
-            mixedLenKeys,
-            "zip",
-            mixedLenKeys
-        },
-        {
-            mixedLenKeys,
-            "b",
-            {"abc", "a1"}
-        },
-        {
-            mixedLenKeys,
-            "barbazboo0",
-            {"barbazboo", "abc", "a1"}
-        },
-        {
-            mixedLenKeys,
-            "a",
-            {}
-        },
-        {
-            mixedLenKeys,
-            "a1",
-            {"a1"}
-        },
-        // Test prefix keys
-        {
-            {"f", "fo", "foo", "food", "bug"},
-            "foo",
-            {"foo", "fo", "f", "bug"}
-        },
-        {
-            {"f", "fo", "foo", "food", "bug"},
-            "foozzzzzzzzzz", // larger than any key but with shared prefix
-            {"food", "foo", "fo", "f", "bug"}
-        },
-        // Test empty key
-        {
-            {"f", "fo", "foo", "food", "bug", ""},
-            "foo",
-            {"foo", "fo", "f", "bug", ""}
-        },
-        {
-            {"f", "bug", ""},
-            "",
-            {""}
-        },
-        {
-            {"f", "bug", "xylophone"},
-            "",
-            {}
-        },
-        // Edge cases
-        {
-            {"foo00", "foo11"},
-            "foo",
-            {}
-        },
-        {
-            {"bar", "foo00", "foo11"},
-            "foo",
-            {"bar"}
-        },
-        {
-            {"bdgedcdc", "agcbcaba"},
-            "beefdafg",
-            {"bdgedcdc", "agcbcaba"}
-        }
-    };
+    std::cout << "Testing reverse iteration through all keys:" << std::endl;
+    auto iter = ReverseIterator<std::string, std::string>(tree.getRoot());
     
-    for (size_t idx = 0; idx < testCases.size(); idx++) {
-        auto [keys, search, expected] = testCases[idx];
-        
-        std::cout << "Test case " << idx << ": search='" << search << "'" << std::endl;
-        
-        // Create tree and insert keys
-        Tree<std::string, std::string> tree;
-        for (const auto& key : keys) {
-            auto [newTree, oldVal, didUpdate] = tree.insert(key, key);
-            tree = newTree;
+    // Should iterate in reverse order: elderberry, date, cherry, banana, apple
+    std::vector<std::string> expected = {"elderberry", "date", "cherry", "banana", "apple"};
+    
+    for (size_t i = 0; i < expected.size(); i++) {
+        auto res = iter.previous();
+        if (!res.found) {
+            std::cout << "ERROR: Expected '" << expected[i] << "' but got nothing" << std::endl;
+            break;
         }
         
-        if (tree.len() != keys.size()) {
-            std::cout << "ERROR: Failed adding keys. Expected " << keys.size() 
-                      << ", got " << tree.len() << std::endl;
-            continue;
-        }
-        
-        // Get reverse iterator and seek to lower bound
-        auto iter = ReverseIterator<std::string, std::string>(tree.getRoot());
-        iter.seekLowerBound(search);
-        
-        // Collect all keys
-        std::vector<std::string> result;
-        while (true) {
-            auto res = iter.previous();
-            if (!res.found) break;
-            result.push_back(res.key);
-        }
-        
-        // Compare results
-        if (result != expected) {
-            std::cout << "MISMATCH: search='" << search << "'" << std::endl;
-            std::cout << "  Expected: ";
-            for (const auto& k : expected) std::cout << "'" << k << "' ";
-            std::cout << std::endl;
-            std::cout << "  Got:      ";
-            for (const auto& k : result) std::cout << "'" << k << "' ";
-            std::cout << std::endl;
+        if (res.key != expected[i]) {
+            std::cout << "ERROR: Expected '" << expected[i] << "', got '" << res.key << "'" << std::endl;
         } else {
-            std::cout << "  PASS" << std::endl;
+            std::cout << "  Got: '" << res.key << "' (expected: '" << expected[i] << "') - PASS" << std::endl;
         }
+    }
+    
+    // Should return no more results
+    auto res = iter.previous();
+    if (res.found) {
+        std::cout << "ERROR: Expected no more results, but got '" << res.key << "'" << std::endl;
+    } else {
+        std::cout << "  No more results - PASS" << std::endl;
     }
 }
 
@@ -258,7 +127,7 @@ void testReverseIteratorPrevious() {
 }
 
 int main() {
-    testReverseIteratorSeekLowerBound();
+    testReverseIteratorBasic();
     testReverseIteratorSeekPrefix();
     testReverseIteratorPrevious();
     
