@@ -190,5 +190,188 @@ int main() {
     
     std::cout << "Tree size: " << test_tree3.len() << std::endl;
     
+    // Example 7: Testing LongestPrefix function
+    std::cout << "\n=== Testing LongestPrefix Function ===" << std::endl;
+    
+    // Create a test tree for longest prefix testing
+    Tree<std::string, std::string> longestPrefixTree;
+    
+    // Insert keys with common prefixes (including empty string for fallback)
+    auto [lpt1, lptold1, lptupd1] = longestPrefixTree.insert("", "empty");
+    longestPrefixTree = lpt1;
+    auto [lpt2, lptold2, lptupd2] = longestPrefixTree.insert("hello", "greeting");
+    longestPrefixTree = lpt2;
+    auto [lpt3, lptold3, lptupd3] = longestPrefixTree.insert("help", "assistance");
+    longestPrefixTree = lpt3;
+    auto [lpt4, lptold4, lptupd4] = longestPrefixTree.insert("world", "planet");
+    longestPrefixTree = lpt4;
+    auto [lpt5, lptold5, lptupd5] = longestPrefixTree.insert("work", "job");
+    longestPrefixTree = lpt5;
+    auto [lpt6, lptold6, lptupd6] = longestPrefixTree.insert("worker", "employee");
+    longestPrefixTree = lpt6;
+    auto [lpt7, lptold7, lptupd7] = longestPrefixTree.insert("working", "active");
+    longestPrefixTree = lpt7;
+    
+    std::cout << "Inserted keys: (empty), hello, help, world, work, worker, working" << std::endl;
+    
+    // Test cases for longest prefix
+    std::vector<std::pair<std::string, std::string>> testCases = {
+        {"hello", "hello"},           // Exact match
+        {"help", "help"},             // Exact match
+        {"hel", "help"},              // Should find "help" (longest prefix)
+        {"he", "help"},               // Should find "help" (longest prefix)
+        {"h", "help"},                // Should find "help" (longest prefix)
+        {"world", "world"},           // Exact match
+        {"wor", "work"},              // Should find "work" (longest prefix)
+        {"work", "work"},             // Exact match
+        {"worker", "worker"},         // Exact match
+        {"working", "working"},       // Exact match
+        {"worki", "working"},         // Should find "working" (longest prefix)
+        {"worke", "worker"},          // Should find "worker" (longest prefix)
+        {"xyz", ""},                  // No match, should return empty string
+        {"", ""},                     // Empty string
+        {"a", ""},                    // No match, should return empty string
+        {"z", ""},                    // No match, should return empty string
+    };
+    
+    for (const auto& [searchKey, expectedKey] : testCases) {
+        auto result = longestPrefixTree.LongestPrefix(searchKey);
+        std::cout << "Search: '" << searchKey << "' -> ";
+        
+        if (result.found) {
+            std::cout << "Found: '" << result.key << "' = '" << result.val << "'";
+            if (expectedKey.empty()) {
+                std::cout << " (UNEXPECTED - should not have found anything)";
+            } else if (result.key != expectedKey) {
+                std::cout << " (UNEXPECTED - expected '" << expectedKey << "')";
+            } else {
+                std::cout << " (CORRECT)";
+            }
+        } else {
+            std::cout << "Not found";
+            if (!expectedKey.empty()) {
+                std::cout << " (UNEXPECTED - should have found '" << expectedKey << "')";
+            } else {
+                std::cout << " (CORRECT)";
+            }
+        }
+        std::cout << std::endl;
+    }
+    
+    // Test with vector<uint8_t> keys
+    std::cout << "\n=== Testing LongestPrefix with vector<uint8_t> keys ===" << std::endl;
+    
+    Tree<std::vector<uint8_t>, std::string> vectorTree;
+    
+    // Insert some test data
+    std::vector<uint8_t> v1 = {'h', 'e', 'l', 'l', 'o'};
+    std::vector<uint8_t> v2 = {'h', 'e', 'l', 'p'};
+    std::vector<uint8_t> v3 = {'w', 'o', 'r', 'k'};
+    std::vector<uint8_t> v4 = {'w', 'o', 'r', 'k', 'e', 'r'};
+    
+    auto [vt1, vtold1, vtupd1] = vectorTree.insert(v1, "greeting");
+    vectorTree = vt1;
+    auto [vt2, vtold2, vtupd2] = vectorTree.insert(v2, "assistance");
+    vectorTree = vt2;
+    auto [vt3, vtold3, vtupd3] = vectorTree.insert(v3, "job");
+    vectorTree = vt3;
+    auto [vt4, vtold4, vtupd4] = vectorTree.insert(v4, "employee");
+    vectorTree = vt4;
+    
+    // Test vector longest prefix
+    std::vector<uint8_t> searchVec = {'h', 'e', 'l'};
+    auto vectorResult = vectorTree.LongestPrefix(searchVec);
+    
+    std::cout << "Search vector: [h, e, l] -> ";
+    if (vectorResult.found) {
+        std::cout << "Found: [";
+        for (size_t i = 0; i < vectorResult.key.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << "'" << (char)vectorResult.key[i] << "'";
+        }
+        std::cout << "] = '" << vectorResult.val << "'";
+    } else {
+        std::cout << "Not found";
+    }
+    std::cout << std::endl;
+    
+    // Test edge cases
+    std::cout << "\n=== Testing LongestPrefix Edge Cases ===" << std::endl;
+    
+    // Test with empty tree
+    Tree<std::string, std::string> emptyTree;
+    auto emptyResult = emptyTree.LongestPrefix("anything");
+    std::cout << "Empty tree search 'anything': " << (emptyResult.found ? "FOUND" : "Not found") << std::endl;
+    
+    // Test with single character keys
+    Tree<std::string, std::string> singleCharTree;
+    auto [sct1, sctold1, sctupd1] = singleCharTree.insert("a", "first");
+    singleCharTree = sct1;
+    auto [sct2, sctold2, sctupd2] = singleCharTree.insert("b", "second");
+    singleCharTree = sct2;
+    
+    auto singleResult = singleCharTree.LongestPrefix("a");
+    std::cout << "Single char tree search 'a': " << (singleResult.found ? "FOUND '" + singleResult.key + "'" : "Not found") << std::endl;
+    
+    auto noMatchResult = singleCharTree.LongestPrefix("c");
+    std::cout << "Single char tree search 'c': " << (noMatchResult.found ? "FOUND '" + noMatchResult.key + "'" : "Not found") << std::endl;
+    
+    // Test case matching the Go test
+    std::cout << "\n=== Testing LongestPrefix with Go test cases ===" << std::endl;
+    
+    Tree<std::string, std::string> goTestTree;
+    
+    // Insert the same keys as in the Go test
+    std::vector<std::string> goKeys = {"", "foo", "foobar", "foobarbaz", "foobarbazzip", "foozip"};
+    for (const auto& key : goKeys) {
+        auto [newTree, _, __] = goTestTree.insert(key, "value");
+        goTestTree = newTree;
+    }
+    
+    std::cout << "Inserted keys: ";
+    for (const auto& key : goKeys) {
+        std::cout << "'" << key << "' ";
+    }
+    std::cout << std::endl;
+    
+    // Test cases from the Go test
+    std::vector<std::pair<std::string, std::string>> goTestCases = {
+        {"a", ""},
+        {"abc", ""},
+        {"fo", ""},
+        {"foo", "foo"},
+        {"foob", "foo"},
+        {"foobar", "foobar"},
+        {"foobarba", "foobar"},
+        {"foobarbaz", "foobarbaz"},
+        {"foobarbazzi", "foobarbaz"},
+        {"foobarbazzip", "foobarbazzip"},
+        {"foozi", "foo"},
+        {"foozip", "foozip"},
+        {"foozipzap", "foozip"},
+    };
+    
+    for (const auto& [input, expected] : goTestCases) {
+        auto result = goTestTree.LongestPrefix(input);
+        std::cout << "Search: '" << input << "' -> ";
+        
+        if (result.found) {
+            std::cout << "Found: '" << result.key << "'";
+            if (result.key != expected) {
+                std::cout << " (UNEXPECTED - expected '" << expected << "')";
+            } else {
+                std::cout << " (CORRECT)";
+            }
+        } else {
+            std::cout << "Not found";
+            if (!expected.empty()) {
+                std::cout << " (UNEXPECTED - should have found '" << expected << "')";
+            } else {
+                std::cout << " (CORRECT)";
+            }
+        }
+        std::cout << std::endl;
+    }
+    
     return 0;
 }

@@ -476,6 +476,10 @@ public:
         return std::nullopt;
     }
 
+    LongestPrefixResult<K, T> LongestPrefix(const K& search) const {
+        return root->LongestPrefix(search);
+    }
+
     Iterator<K, T> iterator() const {
         return Iterator<K, T>(root);
     }

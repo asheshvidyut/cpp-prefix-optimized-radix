@@ -236,6 +236,37 @@ bool Node<K, T>::Get(const K& search, T& result) const {
     return false;
 }
 
+template<typename K, typename T>
+LongestPrefixResult<K, T> Node<K, T>::LongestPrefix(const K& search) const {
+    const Node<K, T>* n = this;
+    LeafNode<K, T>* last = nullptr;
+    K remaining = search;
+
+    while (true) {
+        if (n->isLeaf()) {
+            last = n->leaf.get();
+        }
+        if (remaining.empty()) {
+            break;
+        }
+        auto next = n->getEdge(remaining[0]);
+        if (!next) {
+            break;
+        }
+        if (hasPrefix(remaining, next->prefix)) {
+            remaining = K(remaining.begin() + next->prefix.size(), remaining.end());
+            n = next.get();
+        } else {
+            break;
+        }
+    }
+    if (last) {
+        return {last->key, last->val, true};
+    }
+    T zero{};
+    return {K{}, zero, false};
+}
+
 // Explicit template instantiations
 template class Node<std::string, std::string>;
 template class Node<std::string, int>;

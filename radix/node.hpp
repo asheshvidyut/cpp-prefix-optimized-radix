@@ -26,6 +26,14 @@ struct Edge {
     std::shared_ptr<Node<K, T>> node;
 };
 
+// Result structure for LongestPrefix
+template<typename K, typename T>
+struct LongestPrefixResult {
+    K key;
+    T val;
+    bool found;
+};
+
 // LeafNode definition
 template<typename K, typename T>
 class LeafNode {
@@ -83,14 +91,10 @@ public:
 
     // Gets a value from the node given a key
     bool Get(const K& search, T& result) const;
-};
 
-// Result structure for LongestPrefix
-template<typename K, typename T>
-struct LongestPrefixResult {
-    K key;
-    T val;
-    bool found;
+    // LongestPrefix is like Get, but instead of an exact match,
+    // it will return the longest prefix match.
+    LongestPrefixResult<K, T> LongestPrefix(const K& search) const;
 };
 
 // Helper function declarations
