@@ -59,12 +59,15 @@ public:
         key = prefix;
         auto n = node;
         K search = prefix;
+        iterLeafNode = node->maxLeaf;
+        iterCounter = node->leaves_in_subtree;
         
         while (n) {
             // Check for key exhaustion
             if (search.empty()) {
                 node = n;
                 iterLeafNode = node->maxLeaf;
+                iterCounter = node->leaves_in_subtree;
                 return;
             }
 
@@ -73,6 +76,7 @@ public:
             if (!nextNode) {
                 node = nullptr;
                 iterLeafNode = nullptr;
+                iterCounter = 0;
                 return;
             }
 
@@ -82,10 +86,12 @@ public:
             } else if (hasPrefix(nextNode->prefix, search)) {
                 node = nextNode;
                 iterLeafNode = node->maxLeaf;
+                iterCounter = node->leaves_in_subtree;
                 return;
             } else {
                 node = nullptr;
                 iterLeafNode = nullptr;
+                iterCounter = 0;
                 return;
             }
             
