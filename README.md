@@ -9,6 +9,52 @@ A C++ implementation of a prefix-optimized radix tree with leaf-based iteration,
 - **Prefix Compression**: Shared prefixes are stored once to reduce memory usage
 - **Generic Design**: Template-based implementation supporting any key-value types
 - **Comprehensive Benchmarking**: Performance comparison with Abseil's btree_map
+- **Longest Prefix Search**: Find the longest matching prefix for a given key
+- **Index-Based Access**: Retrieve elements by their sorted index position
+
+## Unique APIs (Not Available in btree_map)
+
+### Longest Prefix Search
+
+The radix tree provides a `LongestPrefix` method that finds the longest key that is a prefix of the given search key. This is particularly useful for:
+
+- **IP routing tables**: Finding the most specific route for an IP address
+- **URL routing**: Matching the longest path prefix
+- **Autocomplete**: Finding the best matching prefix for user input
+
+```cpp
+Tree<std::string, std::string> tree;
+tree.insert("", "empty");
+tree.insert("foo", "value1");
+tree.insert("foobar", "value2");
+
+auto result = tree.LongestPrefix("foobaz");
+// result.key = "foo", result.val = "value1", result.found = true
+```
+
+### Index-Based Access (GetAtIndex)
+
+The `GetAtIndex` method allows you to retrieve elements by their position in the sorted order, which is not available in standard associative containers like `btree_map`:
+
+```cpp
+Tree<std::string, std::string> tree;
+tree.insert("banana", "fruit2");
+tree.insert("apple", "fruit1");
+tree.insert("cherry", "fruit3");
+
+// Get the first element in sorted order
+auto [key, value, found] = tree.GetAtIndex(0);
+// key = "apple", value = "fruit1", found = true
+
+// Get the second element in sorted order
+auto [key2, value2, found2] = tree.GetAtIndex(1);
+// key2 = "banana", value2 = "fruit2", found2 = true
+```
+
+This is useful for:
+- **Range queries**: Accessing elements in sorted order by index
+- **Pagination**: Implementing page-based access to sorted data
+- **Statistical operations**: Finding median, percentiles, etc.
 
 ## Quick Start
 
