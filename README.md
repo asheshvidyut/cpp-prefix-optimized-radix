@@ -195,16 +195,6 @@ When you run `./run_benchmark.sh`, the output includes several memory usage metr
 - **MemoryPerItem**: The average memory usage per item (for insert benchmarks).
 - **PeakPerItem**: The peak memory usage per item (for insert benchmarks).
 
-### Example Output
-
-```
-Benchmark           ...   TotalMemory   MemoryPeak   MemoryPerItem   PeakPerItem   RSSDelta
-BM_RadixTreeInsert  ...   105.764G      105.764G     448.367k        448.367k      0
-BM_BTreeMapInsert   ...   126.987G      126.987G     538.339k        538.339k      0
-```
-
-- **TotalMemory** is the value you should use to compare the total memory consumed by different data structures after all insertions.
-
 ### JSON Output
 
 For more detailed analysis, you can run:
