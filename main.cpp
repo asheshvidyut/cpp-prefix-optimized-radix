@@ -9,6 +9,8 @@
 #include <regex>
 #include <fstream>
 #include <sstream>
+#include <random>
+#include <algorithm>
 
 int main() {
     // Example 1: Using std::vector<uint8_t> as key type and std::string as value type
@@ -372,6 +374,114 @@ int main() {
         }
         std::cout << std::endl;
     }
+    
+    Tree<std::string, std::string> tree;
+    
+    // Insert some test data
+    tree.insert("apple", "fruit1");
+    tree.insert("banana", "fruit2");
+    tree.insert("cherry", "fruit3");
+    tree.insert("date", "fruit4");
+    tree.insert("elderberry", "fruit5");
+    
+    std::cout << "Tree size: " << tree.len() << std::endl;
+    std::cout << "Leaves in subtree: " << tree.GetLeavesInSubtree() << std::endl;
+    
+    // Test GetAtIndex functionality
+    for (int i = 0; i < tree.GetLeavesInSubtree(); i++) {
+        auto [key, value, found] = tree.GetAtIndex(i);
+        if (found) {
+            std::cout << "Index " << i << ": key='" << key << "', value='" << value << "'" << std::endl;
+        } else {
+            std::cout << "Index " << i << ": not found" << std::endl;
+        }
+    }
+    
+    // Test out of bounds
+    auto [key_out, value_out, found_out] = tree.GetAtIndex(10);
+    std::cout << "Index 10 (out of bounds): found=" << found_out << std::endl;
+    
+    // Test GetAtIndex with shuffled insertion
+    std::cout << "\n=== Testing GetAtIndex with shuffled insertion ===" << std::endl;
+    
+    // Read all words from words.txt
+    std::ifstream wordsFile("words.txt");
+    if (!wordsFile.is_open()) {
+        std::cerr << "Error: Could not open words.txt" << std::endl;
+        return 1;
+    }
+    
+    std::vector<std::string> allWords;
+    std::string testWord;
+    while (std::getline(wordsFile, testWord)) {
+        // Remove any trailing whitespace
+        testWord.erase(testWord.find_last_not_of(" \n\r\t") + 1);
+        if (!testWord.empty()) {
+            allWords.push_back(testWord);
+        }
+    }
+    wordsFile.close();
+    
+    std::cout << "Total words read: " << allWords.size() << std::endl;
+    
+    // Create a copy for shuffling
+    std::vector<std::string> shuffledWords = allWords;
+    
+    // Shuffle the words
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(shuffledWords.begin(), shuffledWords.end(), g);
+    
+    std::cout << "First 10 shuffled words: ";
+    for (int i = 0; i < std::min(10, (int)shuffledWords.size()); i++) {
+        std::cout << shuffledWords[i] << " ";
+    }
+    std::cout << std::endl;
+    
+    // Insert shuffled words into tree
+    Tree<std::string, std::string> shuffledTree;
+    for (const auto& w : shuffledWords) {
+        auto [newTree, oldVal, didUpdate] = shuffledTree.insert(w, w);
+        shuffledTree = newTree;
+    }
+    
+    std::cout << "Tree size after insertion: " << shuffledTree.len() << std::endl;
+    std::cout << "Leaves in subtree: " << shuffledTree.GetLeavesInSubtree() << std::endl;
+    
+    // Sort the original words for comparison
+    std::sort(allWords.begin(), allWords.end());
+    
+    // Verify GetAtIndex returns words in sorted order
+    bool allCorrect = true;
+    int numCorrect = 0;
+    
+    for (int idx = 0; idx < (int)allWords.size(); idx++) {
+        auto [key, value, found] = shuffledTree.GetAtIndex(idx);
+        if (found) {
+            if (key != allWords[idx]) {
+                std::cout << "MISMATCH at index " << idx << ": expected '" << allWords[idx] << "', got '" << key << "'" << std::endl;
+                allCorrect = false;
+            } else {
+                numCorrect++;
+            }
+        } else {
+            std::cout << "NOT FOUND at index " << idx << std::endl;
+            allCorrect = false;
+        }
+    }
+    
+    std::cout << "Correct matches: " << numCorrect << "/" << allWords.size() << std::endl;
+    std::cout << "All indices correct: " << (allCorrect ? "YES" : "NO") << std::endl;
+    
+    // Show first 10 words from GetAtIndex
+    std::cout << "First 10 words from GetAtIndex: ";
+    for (int i = 0; i < std::min(10, (int)allWords.size()); i++) {
+        auto [key, value, found] = shuffledTree.GetAtIndex(i);
+        if (found) {
+            std::cout << key << " ";
+        }
+    }
+    std::cout << std::endl;
     
     return 0;
 }

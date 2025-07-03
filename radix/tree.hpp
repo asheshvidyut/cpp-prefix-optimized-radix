@@ -480,6 +480,12 @@ public:
         return root->LongestPrefix(search);
     }
 
+    // GetAtIndex is used to lookup a specific key, returning
+    // the value and if it was found
+    std::tuple<K, T, bool> GetAtIndex(int index) const {
+        return root->GetAtIndex(index);
+    }
+
     Iterator<K, T> iterator() const {
         return Iterator<K, T>(root);
     }

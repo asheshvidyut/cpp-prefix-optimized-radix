@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 #include <optional>
+#include <tuple>
 
 // Forward declarations
 template<typename K, typename T>
@@ -95,6 +96,15 @@ public:
     // LongestPrefix is like Get, but instead of an exact match,
     // it will return the longest prefix match.
     LongestPrefixResult<K, T> LongestPrefix(const K& search) const;
+
+    // GetAtIndex returns the key and value at the specified index
+    std::tuple<K, T, bool> GetAtIndex(int index) const;
+
+    // SearchIndex searches for the key and value at the specified index
+    std::tuple<K, T, bool> SearchIndex(int idx) const;
+
+    // getNextIndexEdge finds the next edge that contains the index
+    std::tuple<int, std::shared_ptr<Node<K, T>>> getNextIndexEdge(int idx) const;
 };
 
 // Helper function declarations

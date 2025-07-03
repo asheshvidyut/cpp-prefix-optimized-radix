@@ -267,6 +267,45 @@ LongestPrefixResult<K, T> Node<K, T>::LongestPrefix(const K& search) const {
     return {K{}, zero, false};
 }
 
+template<typename K, typename T>
+std::tuple<K, T, bool> Node<K, T>::GetAtIndex(int index) const {
+    return SearchIndex(index);
+}
+
+template<typename K, typename T>
+std::tuple<K, T, bool> Node<K, T>::SearchIndex(int idx) const {
+    if (idx == 0 && isLeaf()) {
+        return {leaf->key, leaf->val, true};
+    }
+    
+    if (isLeaf()) {
+        idx--;
+    }
+    
+    if (leaves_in_subtree > idx) {
+        auto [nextNodeIdx, nextNode] = getNextIndexEdge(idx);
+        for (int itr = 0; itr < nextNodeIdx; itr++) {
+            idx -= edges[itr].node->leaves_in_subtree;
+        }
+        return nextNode->SearchIndex(idx);
+    }
+    
+    T zero{};
+    return {K{}, zero, false};
+}
+
+template<typename K, typename T>
+std::tuple<int, std::shared_ptr<Node<K, T>>> Node<K, T>::getNextIndexEdge(int idx) const {
+    int cumulativeIndex = 0;
+    for (size_t iterIndex = 0; iterIndex < edges.size(); iterIndex++) {
+        cumulativeIndex += edges[iterIndex].node->leaves_in_subtree;
+        if (cumulativeIndex > idx) {
+            return {static_cast<int>(iterIndex), edges[iterIndex].node};
+        }
+    }
+    return {-1, nullptr};
+}
+
 // Explicit template instantiations
 template class Node<std::string, std::string>;
 template class Node<std::string, int>;
