@@ -5,6 +5,8 @@ echo "Running benchmark with memory tracking..."
 echo "========================================"
 
 # Run the benchmark
+make clean
+make all
 ./benchmark --benchmark_format=console --benchmark_counters_tabular=true
 
 echo ""
