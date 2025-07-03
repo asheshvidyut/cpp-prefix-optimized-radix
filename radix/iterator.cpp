@@ -100,27 +100,12 @@ public:
         IteratorResult<K, T> result;
         result.found = false;
 
-        // Initialize our stack if needed
-        if (iterLeafNode == nullptr && node != nullptr) {
-            iterLeafNode = node->maxLeaf;
-        }
-
-        while (iterLeafNode != nullptr) {
-            if (hasPrefix(iterLeafNode->key, key)) {
-                auto res = iterLeafNode;
-                iterLeafNode = iterLeafNode->prevLeaf;
-                if (iterLeafNode == nullptr) {
-                    node = nullptr;
-                }
-                result.key = res->key;
-                result.val = res->val;
-                result.found = true;
-                return result;
-            } else {
-                iterLeafNode = nullptr;
-                node = nullptr;
-                break;
-            }
+        if (iterLeafNode) {
+            result.key = iterLeafNode->key;
+            result.val = iterLeafNode->val;
+            result.found = true;
+            iterLeafNode = iterLeafNode->prevLeaf;
+            return result;
         }
 
         return result;
