@@ -104,6 +104,20 @@ This project includes comprehensive benchmarks comparing the radix tree with Abs
 
 ### Running Benchmarks
 
+```bash
+./run_benchmark.sh
+```
+
+## Benchmark Memory Usage Metrics
+
+When you run `./run_benchmark.sh`, the output includes several memory usage metrics for each benchmark:
+
+- **TotalMemory**: The total memory used by the process after all insertions. This is the main metric for total memory consumed by your data structure.
+- **MemoryPeak**: The peak memory usage observed during the benchmark.
+- **RSSDelta**: The change in Resident Set Size (physical memory used) during the benchmark.
+- **MemoryPerItem**: The average memory usage per item (for insert benchmarks).
+- **PeakPerItem**: The peak memory usage per item (for insert benchmarks).
+
 #### Run all benchmarks:
 ```bash
 ./benchmark
@@ -184,23 +198,3 @@ BM_BTreeMapPrefixSearch       54735 ns        54720 ns        13142          0  
 ## License
 
 This project is open source. See the original Go implementation for licensing details.
-
-## Benchmark Memory Usage Metrics
-
-When you run `./run_benchmark.sh`, the output includes several memory usage metrics for each benchmark:
-
-- **TotalMemory**: The total memory used by the process after all insertions. This is the main metric for total memory consumed by your data structure.
-- **MemoryPeak**: The peak memory usage observed during the benchmark.
-- **RSSDelta**: The change in Resident Set Size (physical memory used) during the benchmark.
-- **MemoryPerItem**: The average memory usage per item (for insert benchmarks).
-- **PeakPerItem**: The peak memory usage per item (for insert benchmarks).
-
-### JSON Output
-
-For more detailed analysis, you can run:
-
-```sh
-./benchmark --benchmark_format=json > results.json
-```
-
-This will output all memory statistics in JSON format for further processing or visualization.
