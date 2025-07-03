@@ -226,11 +226,11 @@ bool Node<K, T>::Get(const K& search, T& result) const {
         return false;
     }
 
-    for (const auto& edge : edges) {
-        if (hasPrefix(search, edge.node->prefix)) {
-            K newSearch(search.begin() + edge.node->prefix.size(), search.end());
-            return edge.node->Get(newSearch, result);
-        }
+    int idx;
+    auto child = getEdge(search[0], &idx);
+    if (child && hasPrefix(search, child->prefix)) {
+        K newSearch(search.begin() + child->prefix.size(), search.end());
+        return child->Get(newSearch, result);
     }
     
     return false;
