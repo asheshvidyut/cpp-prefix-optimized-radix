@@ -11,6 +11,8 @@ A C++ implementation of a prefix-optimized radix tree with leaf-based iteration,
 - **Comprehensive Benchmarking**: Performance comparison with Abseil's btree_map
 - **Longest Prefix Search**: Find the longest matching prefix for a given key
 - **Index-Based Access**: Retrieve elements by their sorted index position
+- **Lower Bound Search**: Find the smallest element greater than or equal to a given key
+- **Prefix Matching**: Find all keys that are prefixes of a given key
 
 ## Unique APIs (Not Available in btree_map)
 
@@ -56,6 +58,60 @@ This is useful for:
 - **Pagination**: Implementing page-based access to sorted data
 - **Statistical operations**: Finding median, percentiles, etc.
 
+### Lower Bound Iterator
+
+The `LowerBoundIterator` provides efficient lower bound search functionality, finding the smallest element greater than or equal to a given key:
+
+```cpp
+Tree<std::string, std::string> tree;
+tree.insert("apple", "fruit1");
+tree.insert("banana", "fruit2");
+tree.insert("cherry", "fruit3");
+tree.insert("date", "fruit4");
+
+// Find lower bound for "blueberry"
+auto it = tree.lowerBoundBegin();
+it.seekLowerBound("blueberry");
+if (it != tree.lowerBoundEnd()) {
+    std::cout << "Lower bound: " << it->first << std::endl;
+    // Output: Lower bound: cherry
+}
+
+// Find lower bound for "banana"
+it.seekLowerBound("banana");
+if (it != tree.lowerBoundEnd()) {
+    std::cout << "Lower bound: " << it->first << std::endl;
+    // Output: Lower bound: banana
+}
+```
+
+### Find Matching Prefixes
+
+The `findMatchingPrefixes` method finds all keys that are prefixes of a given key:
+
+```cpp
+Tree<std::string, std::string> tree;
+tree.insert("", "empty");
+tree.insert("foo", "value1");
+tree.insert("foobar", "value2");
+tree.insert("foobaz", "value3");
+
+// Find all prefixes of "foobaz"
+auto prefixes = tree.findMatchingPrefixes("foobaz");
+for (const auto& [key, value] : prefixes) {
+    std::cout << key << ": " << value << std::endl;
+}
+// Output:
+// : empty
+// foo: value1
+// foobaz: value3
+```
+
+This is useful for:
+- **Hierarchical data**: Finding all parent nodes in a tree structure
+- **URL routing**: Finding all matching route prefixes
+- **Configuration systems**: Finding all applicable configuration levels
+
 ## Quick Start
 
 ### Prerequisites
@@ -68,6 +124,17 @@ brew install google-benchmark abseil
 ### Build
 ```bash
 make all
+```
+
+### Run Tests
+```bash
+# Run all tests
+make test
+
+# Run specific test categories
+make test-iterator
+make test-lower-bound
+make test-find-matching-prefixes
 ```
 
 ### Run Benchmarks
@@ -85,11 +152,22 @@ cpp-prefix-optimized-radix/
 │   ├── tree.cpp      # Tree implementation
 │   ├── node.hpp      # Node structure and operations
 │   ├── node.cpp      # Node implementation
-│   ├── iterator.cpp  # Leaf-based iterator
+│   ├── iterator.cpp  # Leaf-based iterator with PathIterator and LowerBoundIterator
 ├── main.cpp          # Example usage
 ├── benchmark.cpp     # Performance benchmarks
+├── benchmark_uuid.cpp # UUID-based benchmarks
+├── test_*.cpp        # Various test files for different features
 └── words.txt         # Test data
 ```
+
+## Testing
+
+The project includes comprehensive tests for all features:
+
+- **Iterator Tests**: Test forward, reverse, and path iteration
+- **Lower Bound Tests**: Test lower bound search functionality
+- **Find Matching Prefixes Tests**: Test prefix matching functionality
+- **Integration Tests**: Test all features working together
 
 ## Key Design Decisions
 
