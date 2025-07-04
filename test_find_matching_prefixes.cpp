@@ -165,6 +165,38 @@ void testFindMatchingPrefixes() {
     std::cout << "Results are " << (isSorted ? "sorted" : "not sorted") << std::endl;
     assert(isSorted);
     
+    // Test 13: Search for a key that exists
+    auto result1 = tree.findMatchingPrefixes("cherry");
+    assert(result1.size() == 1);
+    assert(result1[0].first == "cherry");
+    assert(result1[0].second == "fruit3");
+    std::cout << "✓ Test 13 passed: Exact match" << std::endl;
+    
+    // Test 14: Search for a key that doesn't exist but has a lower bound
+    auto result2 = tree.findMatchingPrefixes("blueberry");
+    assert(result2.size() == 0);  // No keys are prefixes of "blueberry"
+    std::cout << "✓ Test 14 passed: No matching prefixes" << std::endl;
+    
+    // Test 15: Search for a key that doesn't exist and is greater than all keys
+    auto result3 = tree.findMatchingPrefixes("zucchini");
+    assert(result3.size() == 0);  // No keys are prefixes of "zucchini"
+    std::cout << "✓ Test 15 passed: Greater than all keys" << std::endl;
+    
+    // Test 16: Search for a key that doesn't exist but is between existing keys
+    auto result4 = tree.findMatchingPrefixes("coconut");
+    assert(result4.size() == 0);  // No keys are prefixes of "coconut"
+    std::cout << "✓ Test 16 passed: Between existing keys" << std::endl;
+    
+    // Test 17: Search for a key that doesn't exist and is less than all keys
+    auto result5 = tree.findMatchingPrefixes("aardvark");
+    assert(result5.size() == 0);  // No keys are prefixes of "aardvark"
+    std::cout << "✓ Test 17 passed: Less than all keys" << std::endl;
+    
+    // Test 18: Search for empty string
+    auto result6 = tree.findMatchingPrefixes("");
+    assert(result6.size() == 0);  // Empty string should return no results
+    std::cout << "✓ Test 18 passed: Empty string search" << std::endl;
+    
     std::cout << "\nAll findMatchingPrefixes tests passed!" << std::endl;
 }
 

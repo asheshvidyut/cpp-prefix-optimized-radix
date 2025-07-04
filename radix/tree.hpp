@@ -528,12 +528,22 @@ public:
             return results;
         }
         
+        // If the lower bound returned a key greater than our search key,
+        // we need to go to the previous leaf to find the actual lower bound
+        if (currentLeaf->key > searchKey) {
+            currentLeaf = currentLeaf->prevLeaf;
+            if (!currentLeaf) {
+                return results;
+            }
+        }
+        
         // Traverse backwards through the doubly linked list
         // to find all keys that are prefixes of the search key
         LeafNode<K, T>* leaf = currentLeaf;
         
         while (leaf) {
             // Check if this key is a prefix of the search key
+            // hasPrefix(searchKey, leaf->key) checks if leaf->key is a prefix of searchKey
             if (hasPrefix(searchKey, leaf->key)) {
                 results.push_back({leaf->key, leaf->val});
             } else {
