@@ -152,7 +152,7 @@ cpp-prefix-optimized-radix/
 │   ├── tree.cpp      # Tree implementation
 │   ├── node.hpp      # Node structure and operations
 │   ├── node.cpp      # Node implementation
-│   ├── iterator.cpp  # Leaf-based iterator with PathIterator and LowerBoundIterator
+│   ├── iterator.cpp  # Leaf-based iterator and LowerBoundIterator
 ├── main.cpp          # Example usage
 ├── benchmark.cpp     # Performance benchmarks
 ├── benchmark_uuid.cpp # UUID-based benchmarks
