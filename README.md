@@ -171,22 +171,22 @@ Load Average: 3.36, 3.77, 3.94
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations MemoryPeak MemoryPerItem PeakPerItem   RSSDelta TotalMemory bytes_per_second items_per_second
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-BM_RadixTreeInsert         71118185 ns     71009333 ns            9   117.306G        497.3k      497.3k          0    117.306G      152.065Mi/s        3.3219M/s
-BM_BTreeMapInsert          15959900 ns     15801778 ns           45   137.875G      584.499k    584.499k          0    137.875G      683.341Mi/s       14.9278M/s
+BM_RadixTreeInsert         76719819 ns     76662222 ns            9   116.501G      493.886k    493.886k          0    116.501G      140.852Mi/s       3.07695M/s
+BM_BTreeMapInsert          15811056 ns     15806116 ns           43   136.969G      580.658k    580.658k          0    136.969G      683.154Mi/s       14.9237M/s
 ---------------------------------------------------------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations MemoryDelta MemoryPeak   RSSDelta bytes_per_second items_per_second
 ---------------------------------------------------------------------------------------------------------------------------------------
-BM_RadixTreeLookup         58941472 ns     58919917 ns           12           0   137.875G          0      91.6329Mi/s        4.0035M/s
-BM_BTreeMapLookup          17426093 ns     17424475 ns           40           0   137.976G          0      309.852Mi/s       13.5376M/s
+BM_RadixTreeLookup         31249167 ns     31246545 ns           22           0   136.969G          0      172.787Mi/s       7.54919M/s
+BM_BTreeMapLookup          17625066 ns     17623675 ns           40           0   136.969G          0      306.349Mi/s       13.3846M/s
 ----------------------------------------------------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations MemoryPeak bytes_per_second items_per_second
 ----------------------------------------------------------------------------------------------------------------
-BM_RadixTreeIterate          913956 ns       912172 ns          752          0      11.5602Gi/s       258.598M/s
-BM_BTreeMapIterate           325366 ns       325335 ns         2143          0      32.4126Gi/s       725.057M/s
-BM_RadixTreeRandomAccess     545712 ns       545420 ns         1177          0      41.9643Mi/s       1.83345M/s
-BM_BTreeMapRandomAccess      178879 ns       178839 ns         3855          0      127.982Mi/s       5.59162M/s
-BM_RadixTreePrefixSearch      95467 ns        95460 ns         7277          0      10.6579Gi/s       238.414M/s
-BM_BTreeMapPrefixSearch       54735 ns        54720 ns        13142          0      18.5929Gi/s       415.917M/s
+BM_RadixTreeIterate          805254 ns       805116 ns          716          0      13.0974Gi/s       292.984M/s
+BM_BTreeMapIterate           339719 ns       339687 ns         2087          0      31.0431Gi/s       694.422M/s
+BM_RadixTreeRandomAccess     450193 ns       449244 ns         1374          0      50.9482Mi/s       2.22596M/s
+BM_BTreeMapRandomAccess      179410 ns       179388 ns         3910          0      127.591Mi/s       5.57452M/s
+BM_RadixTreePrefixSearch      96404 ns        96396 ns         7172          0      10.5544Gi/s       236.098M/s
+BM_BTreeMapPrefixSearch       54059 ns        54056 ns        12965          0      18.8215Gi/s        421.03M/s
 ```
 
 ## Dependencies
