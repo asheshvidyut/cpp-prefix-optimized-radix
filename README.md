@@ -11,7 +11,6 @@ A C++ implementation of a prefix-optimized radix tree with leaf-based iteration,
 - **Comprehensive Benchmarking**: Performance comparison with Abseil's btree_map
 - **Longest Prefix Search**: Find the longest matching prefix for a given key
 - **Index-Based Access**: Retrieve elements by their sorted index position
-- **Lower Bound Search**: Find the smallest element greater than or equal to a given key
 - **Prefix Matching**: Find all keys that are prefixes of a given key
 
 ## Unique APIs (Not Available in btree_map)
@@ -99,16 +98,6 @@ brew install google-benchmark abseil
 ### Build
 ```bash
 make all
-```
-
-### Run Tests
-```bash
-# Run all tests
-make test
-
-# Run specific test categories
-make test-iterator
-make test-find-matching-prefixes
 ```
 
 ### Run Benchmarks
