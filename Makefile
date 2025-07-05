@@ -11,14 +11,13 @@ FUZZY_SOURCES = fuzzy_test_main.cpp radix/node.cpp radix/tree.cpp radix/iterator
 BENCHMARK_SOURCES = benchmark.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 BENCHMARK_UUID_SOURCES = benchmark_uuid.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 REVERSE_ITERATOR_SOURCES = test_reverse_iterator.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
-LOWER_BOUND_SOURCES = test_lower_bound_iterator.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
-SIMPLE_LOWER_BOUND_SOURCES = test_simple_lower_bound.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
+
 FIND_MATCHING_SOURCES = test_find_matching_prefixes.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 SIMPLE_FIND_MATCHING_SOURCES = test_simple_find_prefixes.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 COMPREHENSIVE_FIND_MATCHING_SOURCES = test_comprehensive_find_matching.cpp radix/node.cpp radix/tree.cpp radix/iterator.cpp
 
 # Targets
-all: radix-cpp benchmark benchmark-uuid test-reverse-iterator test-lower-bound test-simple-lower-bound test-find-matching test-simple-find-matching test-comprehensive-find-matching
+all: radix-cpp benchmark benchmark-uuid test-reverse-iterator test-find-matching test-simple-find-matching test-comprehensive-find-matching
 
 radix-cpp: $(MAIN_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
@@ -32,11 +31,7 @@ benchmark-uuid: $(BENCHMARK_UUID_SOURCES)
 test-reverse-iterator: $(REVERSE_ITERATOR_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
 
-test-lower-bound: $(LOWER_BOUND_SOURCES)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
 
-test-simple-lower-bound: $(SIMPLE_LOWER_BOUND_SOURCES)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
 
 test-find-matching: $(FIND_MATCHING_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
@@ -48,6 +43,6 @@ test-comprehensive-find-matching: $(COMPREHENSIVE_FIND_MATCHING_SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
 
 clean:
-	rm -f radix-cpp fuzzy-test benchmark benchmark-uuid test-reverse-iterator test-lower-bound test-simple-lower-bound test-find-matching test-simple-find-matching test-comprehensive-find-matching
+	rm -f radix-cpp fuzzy-test benchmark benchmark-uuid test-reverse-iterator test-find-matching test-simple-find-matching test-comprehensive-find-matching
 
 .PHONY: all clean

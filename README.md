@@ -58,32 +58,7 @@ This is useful for:
 - **Pagination**: Implementing page-based access to sorted data
 - **Statistical operations**: Finding median, percentiles, etc.
 
-### Lower Bound Iterator
 
-The `LowerBoundIterator` provides efficient lower bound search functionality, finding the smallest element greater than or equal to a given key:
-
-```cpp
-Tree<std::string, std::string> tree;
-tree.insert("apple", "fruit1");
-tree.insert("banana", "fruit2");
-tree.insert("cherry", "fruit3");
-tree.insert("date", "fruit4");
-
-// Find lower bound for "blueberry"
-auto it = tree.lowerBoundBegin();
-it.seekLowerBound("blueberry");
-if (it != tree.lowerBoundEnd()) {
-    std::cout << "Lower bound: " << it->first << std::endl;
-    // Output: Lower bound: cherry
-}
-
-// Find lower bound for "banana"
-it.seekLowerBound("banana");
-if (it != tree.lowerBoundEnd()) {
-    std::cout << "Lower bound: " << it->first << std::endl;
-    // Output: Lower bound: banana
-}
-```
 
 ### Find Matching Prefixes
 
@@ -133,7 +108,6 @@ make test
 
 # Run specific test categories
 make test-iterator
-make test-lower-bound
 make test-find-matching-prefixes
 ```
 
@@ -152,7 +126,7 @@ cpp-prefix-optimized-radix/
 │   ├── tree.cpp      # Tree implementation
 │   ├── node.hpp      # Node structure and operations
 │   ├── node.cpp      # Node implementation
-│   ├── iterator.cpp  # Leaf-based iterator and LowerBoundIterator
+│   ├── iterator.cpp  # Leaf-based iterator and PrefixIterator
 ├── main.cpp          # Example usage
 ├── benchmark.cpp     # Performance benchmarks
 ├── benchmark_uuid.cpp # UUID-based benchmarks
@@ -165,7 +139,6 @@ cpp-prefix-optimized-radix/
 The project includes comprehensive tests for all features:
 
 - **Iterator Tests**: Test forward, reverse, and path iteration
-- **Lower Bound Tests**: Test lower bound search functionality
 - **Find Matching Prefixes Tests**: Test prefix matching functionality
 - **Integration Tests**: Test all features working together
 
